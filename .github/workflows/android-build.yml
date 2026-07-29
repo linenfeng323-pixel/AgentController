@@ -1,0 +1,88 @@
+name: Android Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 配置 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 配置 Gradle
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: '8.5'
+
+      - name: 缓存 Gradle 依赖
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+
+      - name: 授予 gradlew 执行权限
+        run: chmod +x ./gradlew
+
+      - name: 编译 Debug APK
+        id: build
+        run: |
+          set +e
+          ./gradlew :app:assembleDebug --stacktrace 2>&1 | tee build_log.txt
+          code=${PIPESTATUS[0]}
+          echo "exit_code=$code" >> $GITHUB_OUTPUT
+          exit $code
+
+      - name: 失败时上传构建日志
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: |
+            build_log.txt
+            app/build/reports/
+          if-no-files-found: ignore
+
+      - name: 上传 APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AgentController-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: 失败时触发自动修复代理
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          python3 scripts/auto_fix_agent.py \
+            --repo "$REPO" \
+            --token "$GITHUB_TOKEN" \
+            --branch "$BRANCH" \
+            --run-id "$RUN_ID" \
+            --log build_log.txt \
+            --max-attempts 8

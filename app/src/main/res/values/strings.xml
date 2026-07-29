@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">AI 操控盒子</string>
+    <string name="accessibility_service_desc">AI 操控盒子无障碍服务，用于让 AI 代替你点击、滑动、输入、打开应用等操作。请保持开启。</string>
+
+    <string name="hint_search">输入 AI 名称或网址，例如：豆包、doubao、chatgpt</string>
+    <string name="btn_go">进入</string>
+    <string name="btn_accessibility">开启无障碍</string>
+    <string name="accessibility_on">无障碍服务已开启</string>
+    <string name="accessibility_off">无障碍服务未开启，点击开启</string>
+
+    <string name="btn_send_cmd">发送指令</string>
+    <string name="btn_capture">捕获回复</string>
+    <string name="btn_execute">执行</string>
+    <string name="btn_log">日志</string>
+    <string name="btn_back_sys">返回</string>
+    <string name="btn_home">主页</string>
+    <string name="btn_auto">自动执行</string>
+
+    <string name="recent_sites">最近使用</string>
+    <string name="hot_sites">热门 AI</string>
+</resources>

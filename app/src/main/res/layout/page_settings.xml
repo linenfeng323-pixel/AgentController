@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="设置"
+            android:textColor="@color/text_main"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card_round"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <CheckBox
+                android:id="@+id/cbAutoExec"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="自动执行 AI 返回的操作步骤"
+                android:textColor="@color/text_main" />
+
+            <CheckBox
+                android:id="@+id/cbUseRoot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="优先使用 Root 系统级执行"
+                android:textColor="@color/text_main" />
+
+            <CheckBox
+                android:id="@+id/cbUseAcc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="启用无障碍兜底"
+                android:textColor="@color/text_main" />
+
+            <CheckBox
+                android:id="@+id/cbShot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="执行出错时自动截图"
+                android:textColor="@color/text_main" />
+
+            <CheckBox
+                android:id="@+id/cbBridge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="启用 PC/云端协同桥接"
+                android:textColor="@color/text_main" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="PC 桥接地址"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp" />
+
+        <EditText
+            android:id="@+id/etBridgeUrl"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_search_bar"
+            android:hint="ws://192.168.1.100:9912"
+            android:inputType="textUri"
+            android:padding="10dp"
+            android:textColor="@color/text_main"
+            android:textColorHint="@color/text_sub"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="代理循环最大步数"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp" />
+
+        <EditText
+            android:id="@+id/etMaxSteps"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_search_bar"
+            android:inputType="number"
+            android:padding="10dp"
+            android:textColor="@color/text_main"
+            android:textSize="13sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnSaveCfg"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_pill_accent"
+                android:text="保存配置"
+                android:textColor="@color/black"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnRestoreCfg"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_card_round"
+                android:text="恢复原配置"
+                android:textColor="@color/text_main" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnOpenOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card_round"
+            android:text="开启悬浮窗权限"
+            android:textColor="@color/text_main" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="关于"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_card_round"
+            android:padding="12dp"
+            android:text="AI 操控盒子 v1.0\nRoot + 无障碍混合执行 / 代理循环 / 录制回放 / PC 协同\n借鉴白给 v19 防漏人缓存与自适应降频思路"
+            android:textColor="@color/text_main"
+            android:textSize="12sp" />
+    </LinearLayout>
+</ScrollView>
