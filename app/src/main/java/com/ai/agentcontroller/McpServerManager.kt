@@ -75,8 +75,8 @@ object McpServerManager {
             val lines = mutableListOf<String>()
             var line: String?
             while (input.readLine().also { line = it } != null) {
-                if (line.isBlank()) break
-                lines.add(line)
+                if (line.isNullOrBlank()) break
+                lines.add(line!!)
             }
             val body = buildString { lines.forEach { append(it); append('\n') } }
             val first = lines.firstOrNull() ?: ""

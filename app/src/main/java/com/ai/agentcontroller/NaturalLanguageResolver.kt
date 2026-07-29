@@ -43,16 +43,12 @@ object NaturalLanguageResolver {
                 return Resolved(listOf(AgentCommand("volume_up")))
             t == "音量减" || t == "音量-" || t == "减音量" ->
                 return Resolved(listOf(AgentCommand("volume_down")))
-            Regex("^(音量|调音量到)\\s*(\\d+)\\s*$").matchEntire(t)?.let { m ->
-                return Resolved(listOf(AgentCommand("volume_set", amount = m.groupValues[2].toInt())))
-            }
+        }
+        Regex("^(音量|调音量到)\\s*(\\d+)\\s*$").matchEntire(t)?.let { m ->
+            return Resolved(listOf(AgentCommand("volume_set", amount = m.groupValues[2].toInt())))
         }
 
         // ===== 系统开关 =====
-        fun setOf(target: String, on: Boolean, off: Boolean) =
-            listOfNotNull(if (t.contains("打开") || t.contains("开启") || t.contains("启用"))
-                AgentCommand(target) else if (t.contains("关闭") || t.contains("禁用") || t.contains("关掉"))
-                AgentCommand(target, target = "false") else null)
         when {
             t.contains("WiFi") || t.contains("wifi") || t.contains("无线网") ->
                 return Resolved(listOf(AgentCommand("set_wifi", target = (!(t.contains("关") || t.contains("关") || t.contains("禁用"))).toString())))

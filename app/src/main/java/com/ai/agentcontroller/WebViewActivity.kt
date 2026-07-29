@@ -492,7 +492,7 @@ class WebViewActivity : AppCompatActivity() {
         repeat(120) {
             val o = ghApi(token, "/repos/$repo/actions/runs/$runId")
             val status = o?.optString("status") ?: ""
-            if (status == "completed") return o.optString("conclusion", "unknown")
+            if (status == "completed") return o?.optString("conclusion", "unknown") ?: "unknown"
             Thread.sleep(10_000)
         }
         return "timeout"

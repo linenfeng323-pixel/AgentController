@@ -154,8 +154,9 @@ object SubAgentManager {
         Thread {
             runCatching {
                 val socket = DatagramSocket().apply { broadcast = true; soTimeout = 2000 }
-                val broadcast = DatagramPacket(byteArrayOf('A'.code.toByte(), 'C'.code.toByte(), 'T'.code.toByte(), 'L'.code.toByte()), 4)
-                socket.send(broadcast, java.net.InetAddress.getByName("255.255.255.255"), 18898)
+                val msg = "ACTL:AgentController".toByteArray()
+                val broadcast = DatagramPacket(msg, msg.size, java.net.InetAddress.getByName("255.255.255.255"), 18898)
+                socket.send(broadcast)
                 val buf = ByteArray(1024)
                 repeat(5) {
                     val p = DatagramPacket(buf, buf.size)

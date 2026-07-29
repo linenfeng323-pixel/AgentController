@@ -210,7 +210,7 @@ object HttpRequestTool {
     }
 }
 
-/** 简单计算器：只支持 +-*/() 和数字。 */
+/** 简单计算器：只支持加减乘除和括号。 */
 object MathEval {
     fun eval(expr: String): Double? {
         val s = expr.filter { !it.isWhitespace() }
