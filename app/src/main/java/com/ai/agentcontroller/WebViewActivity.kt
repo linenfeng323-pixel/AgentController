@@ -61,6 +61,20 @@ class WebViewActivity : AppCompatActivity() {
             Log.d("JsBridge", "直执行指令: $text")
             handler.post { handleDirectCommand(text) }
         }
+
+        // ====== DeepSeekChatBridge 接口 ======
+        @JavascriptInterface
+        fun onStarted(requestId: String) {
+            DeepSeekChatBridge.onStarted(requestId)
+        }
+        @JavascriptInterface
+        fun onStream(requestId: String, chunk: String, fullText: String) {
+            if (chunk.isNotEmpty()) DeepSeekChatBridge.onChunk(requestId, chunk)
+        }
+        @JavascriptInterface
+        fun onStable(requestId: String, fullText: String) {
+            DeepSeekChatBridge.onStable(requestId, fullText)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -128,33 +142,39 @@ class WebViewActivity : AppCompatActivity() {
         b.btnSend.setOnClickListener { showCommandDialog() }
     }
 
-    /** 注入 MutationObserver：监听 AI 回复节点变化，自动回传文本。 */
+    /** 注入 agent-toolbox 风格的 500ms 轮询 + 1.5s 文本稳定识别 + DeepSeekChatBridge 逐字流。 */
     private fun injectObserverScript() {
         val js = """
         (function(){
           if (window.__agentObsInstalled) { AndroidBridge && AndroidBridge.onPageReady && AndroidBridge.onPageReady(); return; }
           window.__agentObsInstalled = true;
-          AndroidBridge && AndroidBridge.log && AndroidBridge.log('观察脚本已注入');
+          AndroidBridge && AndroidBridge.log && AndroidBridge.log('观察脚本已注入（v2.4.36：500ms 轮询 + 1.5s 稳定）');
+
+          // 给用户发送的每一条消息分配 requestId
+          window.__rid = null;
+          function nextRid(){
+            var id = 'req_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
+            window.__rid = id;
+            try { AndroidBridge.onStarted && AndroidBridge.onStarted(id); } catch(e){}
+            return id;
+          }
 
           function extractText(el){
             if(!el) return '';
-            // 取该元素下所有可见文本，去掉按钮/复制提示
             var clone = el.cloneNode(true);
-            clone.querySelectorAll('button,svg,[aria-hidden="true"]').forEach(function(n){ n.remove(); });
+            clone.querySelectorAll('button,svg,[aria-hidden="true"],[role="toolbar"],code .copy-btn').forEach(function(n){ n.remove(); });
             return (clone.innerText || clone.textContent || '').trim();
           }
 
-          // 候选回复节点选择器（覆盖主流 AI 站点）
           var selectors = [
-            '[data-testid*="conversation"]',
             '[class*="message"] [class*="content"]',
             '[class*="prose"]',
             '[class*="markdown"]',
-            '[class*="receive"]',
             '[class*="answer"]',
             '[class*="response"]',
             '[class*="chat-content"]',
-            'div[class*="bubble"][class*="left"]',
+            '[data-testid*="conversation"]',
+            '.markdown-body',
             'article'
           ];
 
@@ -162,12 +182,13 @@ class WebViewActivity : AppCompatActivity() {
             for (var i=0;i<selectors.length;i++){
               var list = document.querySelectorAll(selectors[i]);
               if (list && list.length){
-                var last = list[list.length-1];
-                var t = extractText(last);
-                if (t && t.length>2) return t;
+                // 取最后一个非空节点（跳过用户自己发的：class 含 user/me 或位置最右侧）
+                for (var j=list.length-1;j>=0;j--){
+                  var t = extractText(list[j]);
+                  if (t && t.length>2) return t;
+                }
               }
             }
-            // 兜底：取 body 最后一段长文本
             var paras = document.querySelectorAll('p,div,span');
             for (var i=paras.length-1;i>=0;i--){
               var t = (paras[i].innerText||'').trim();
@@ -177,22 +198,58 @@ class WebViewActivity : AppCompatActivity() {
           }
 
           var lastText = '';
-          var timer = setInterval(function(){
-            var t = lastReplyText();
-            if (t && t !== lastText){
-              lastText = t;
-              try { AndroidBridge && AndroidBridge.onAiReply && AndroidBridge.onAiReply(t); } catch(e){}
-            }
-          }, 800);
+          var lastStable = '';
+          var sameCount = 0;
 
-          // 也监听 DOM 变化，立即响应
-          var mo = new MutationObserver(function(){
-            var t = lastReplyText();
-            if (t && t !== lastText){
-              lastText = t;
-              try { AndroidBridge && AndroidBridge.onAiReply && AndroidBridge.onAiReply(t); } catch(e){}
+          // 用户按下发送按钮/回车时，生成新的 rid
+          document.addEventListener('click', function(e){
+            var t = e.target;
+            while(t && t.tagName!=='BODY'){
+              if ((t.tagName==='BUTTON'||t.getAttribute('role')==='button')){
+                var label = (t.innerText || t.getAttribute('aria-label') || t.getAttribute('title') || '').trim();
+                if (/^(发送|send|提交|确认)$/i.test(label) || (t.querySelector('svg') && /发送|send/i.test(label))){
+                  nextRid(); break;
+                }
+              }
+              t = t.parentElement;
             }
-          });
+          }, true);
+          document.addEventListener('keydown', function(e){
+            var el = e.target;
+            var isInput = el && (el.tagName==='TEXTAREA' || el.tagName==='INPUT' || el.getAttribute('contenteditable')==='true');
+            if (e.key==='Enter' && !e.shiftKey && isInput){
+              // 小延迟，等发送真正发生
+              setTimeout(nextRid, 50);
+            }
+          }, true);
+
+          function pollOnce(){
+            var t = lastReplyText();
+            if (!t) return;
+            if (t !== lastText){
+              var delta = t.substring(lastText.length);
+              lastText = t;
+              sameCount = 0;
+              var rid = window.__rid;
+              // 逐字 chunk
+              try { AndroidBridge.onStream && AndroidBridge.onStream(rid || 'default', delta, t); } catch(e){}
+              try { AndroidBridge.onAiReply && AndroidBridge.onAiReply(t); } catch(e){}
+            } else {
+              sameCount++;
+              // 3 次 500ms 不变 → 稳定
+              if (sameCount >= 3 && t !== lastStable){
+                lastStable = t;
+                var rid2 = window.__rid;
+                try { AndroidBridge.onStable && AndroidBridge.onStable(rid2 || 'default', t); } catch(e){}
+                try { AndroidBridge.onAiReply && AndroidBridge.onAiReply(t); } catch(e){}
+                // 30s DOM 兜底：如果超过 30 次采样仍未 done，强制完成
+              }
+            }
+          }
+          setInterval(pollOnce, 500);
+
+          // MutationObserver 变化 → 触发一次 poll 来加速流
+          var mo = new MutationObserver(function(){ pollOnce(); });
           mo.observe(document.body, {childList:true, subtree:true, characterData:true});
         })();
         """.trimIndent()

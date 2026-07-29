@@ -106,6 +106,37 @@ class MainActivity : AppCompatActivity() {
             AccessibilityServiceHelper.openAccessibilitySettings()
         }
 
+        // ===== agent-toolbox 对齐：快捷功能卡 =====
+        val txt = v.findViewById<TextView>(R.id.mcpStatus)
+        fun refreshMcp() {
+            txt?.text = if (McpServerV2.isRunning()) "🟢 MCP 服务运行中  http://localhost:${McpServerV2.PORT}/"
+                         else "⚪ MCP 服务未启动"
+        }
+        v.findViewById<View>(R.id.btnStartMcp)?.setOnClickListener {
+            McpServerV2.start(); McpServerExt.start(); refreshMcp()
+            toast("MCP v2 已启动：浏览器打开 http://<手机IP>:${McpServerV2.PORT}/")
+        }
+        v.findViewById<View>(R.id.btnStopMcp)?.setOnClickListener {
+            McpServerV2.stop(); McpServerExt.stop(); refreshMcp(); toast("MCP 已停止")
+        }
+        v.findViewById<View>(R.id.btnOpenToolbox)?.setOnClickListener {
+            if (!McpServerV2.isRunning()) { McpServerV2.start(); McpServerExt.start(); refreshMcp() }
+            WebViewActivity.launch(this, "MCP 工具箱", "http://localhost:${McpServerV2.PORT}/", false)
+        }
+        v.findViewById<View>(R.id.btnOpenDeepSeek)?.setOnClickListener {
+            val ds = AiSiteResolver.resolve("deepseek")
+            WebViewActivity.launch(this, "DeepSeek 助手", ds.second, ConfigManager.get().autoExecute)
+        }
+        v.findViewById<View>(R.id.btnConnectMt)?.setOnClickListener {
+            // 尝试拉起 MT 管理器，再调 skill reload
+            AppLauncher.launch("MT管理器")
+            McpServerV2.reloadSkillDirectory()
+            toast("尝试拉起 MT 管理器，APK MCP 工具需 MT 侧启动 APK MCP 后即可调用")
+        }
+        refreshMcp()
+        // 首次进入若设置开启，则自动起 MCP
+        if (ConfigManager.get().mcpEnabled && !McpServerV2.isRunning()) { McpServerV2.start(); McpServerExt.start(); refreshMcp() }
+
         // 热门 AI：用 LinearLayoutManager 竖向列表（避免引入 gridlayout 依赖）
         hotSitesGrid.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         hotSitesGrid.adapter = SiteAdapter(AiSiteResolver.hotSites) { site -> openSite(site) }
