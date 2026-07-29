@@ -23,8 +23,14 @@ GITHUB_API = "https://api.github.com"
 
 
 def headers(token: str) -> dict:
+    # fine-grained PAT (github_pat_...) 用 Bearer；classic PAT (ghp_...) 用 token。
+    # 两者都同时设置 Accept，确保兼容。
+    if token.lower().startswith("github_pat_"):
+        auth = f"Bearer {token}"
+    else:
+        auth = f"token {token}"
     return {
-        "Authorization": f"Bearer {token}",
+        "Authorization": auth,
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
     }

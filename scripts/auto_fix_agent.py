@@ -40,8 +40,13 @@ GITHUB_API = "https://api.github.com"
 
 
 def gh_headers(token: str) -> dict:
+    # fine-grained PAT 用 Bearer；classic PAT 用 token，避免 401。
+    if token.lower().startswith("github_pat_"):
+        auth = f"Bearer {token}"
+    else:
+        auth = f"token {token}"
     return {
-        "Authorization": f"Bearer {token}",
+        "Authorization": auth,
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
     }
