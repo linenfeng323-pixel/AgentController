@@ -54,6 +54,13 @@ class WebViewActivity : AppCompatActivity() {
         fun onPageReady() {
             CommandLogManager.info("网页就绪: $siteUrl")
         }
+
+        /** 用户在网页聊天框输入了可被本地识别的快捷指令，直接 root 执行 */
+        @JavascriptInterface
+        fun onDirectCommand(text: String) {
+            Log.d("JsBridge", "直执行指令: $text")
+            handler.post { handleDirectCommand(text) }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -101,6 +108,7 @@ class WebViewActivity : AppCompatActivity() {
                 super.onPageFinished(view, url)
                 injectObserverScript()
                 injectPromptStyle()
+                injectInputInterceptor()
             }
         }
         b.webView.webChromeClient = WebChromeClient()
@@ -202,6 +210,186 @@ class WebViewActivity : AppCompatActivity() {
         })();
         """.trimIndent()
         b.webView.evaluateJavascript(css, null)
+    }
+
+    /** 注入输入拦截器：在网页聊天框输入快捷指令时，直接拦截走本地 root 执行，不再发给 AI。 */
+    private fun injectInputInterceptor() {
+        val js = """
+        (function(){
+          if (window.__agentInputInterceptor) return;
+          window.__agentInputInterceptor = true;
+          AndroidBridge && AndroidBridge.log && AndroidBridge.log('输入拦截器已注入');
+
+          // 本地快捷指令正则匹配表（与 Android 端保持一致）
+          var quickPatterns = [
+            {re:/^打开(.+)$/, action:'open_app'},
+            {re:/^启动(.+)$/, action:'open_app'},
+            {re:/^(返回|-back)$/, action:'back'},
+            {re:/^(回桌面|home|桌面)$/, action:'home'},
+            {re:/^(最近任务|多任务|recents)$/, action:'recents'},
+            {re:/^(截图|截屏|screenshot)$/, action:'screenshot'},
+            {re:/^(等待|sleep|延时)\\s*(\\d+)(秒|s|毫秒|ms)?$/, action:'wait'},
+            {re:/^(点击|click)\\s*(.+)$/, action:'click'},
+            {re:/^(输入|input)\\s*(.+)$/, action:'input_text'},
+            {re:/^(滑动|swipe)\\s*(.+)$/, action:'swipe'},
+            {re:/^(停止|杀掉)\\s*(.+)$/, action:'force_stop'},
+            {re:/^(长按|longpress)\\s*(.+)$/, action:'long_press'},
+            {re:/^(向上滚动|上滑|scroll up)$/, action:'scroll', dir:'up'},
+            {re:/^(向下滚动|下滑|scroll down)$/, action:'scroll', dir:'down'}
+          ];
+
+          function isQuickCommand(text){
+            var t = text.trim();
+            for (var i=0;i<quickPatterns.length;i++){
+              if (quickPatterns[i].re.test(t)) return true;
+            }
+            return false;
+          }
+
+          function tryIntercept(el){
+            if (!el) return;
+            // 拦截回车
+            el.addEventListener('keydown', function(e){
+              var val = (el.value || el.innerText || '').trim();
+              if (e.key === 'Enter' && !e.shiftKey && isQuickCommand(val)){
+                e.preventDefault();
+                e.stopPropagation();
+                AndroidBridge && AndroidBridge.onDirectCommand && AndroidBridge.onDirectCommand(val);
+                // 清空输入框
+                if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') el.value = '';
+                else el.innerText = '';
+                return false;
+              }
+            }, true);
+          }
+
+          // 监听整个 document 的 click，如果点击的是发送按钮，检查输入框内容
+          document.addEventListener('click', function(e){
+            var target = e.target;
+            var btnText = (target.innerText || target.getAttribute('aria-label') || '').trim();
+            var isSendBtn = /^(发送|send|send message|提交|确认)$/i.test(btnText);
+            if (!isSendBtn) {
+              // 也匹配一些 svg/icon 按钮：父级包含发送文字
+              var parent = target.closest('button');
+              if (parent) {
+                btnText = (parent.innerText || parent.getAttribute('aria-label') || '').trim();
+                isSendBtn = /^(发送|send|send message|提交|确认)$/i.test(btnText);
+                if (isSendBtn) target = parent;
+              }
+            }
+            if (isSendBtn) {
+              // 找附近的输入框
+              var form = target.closest('form');
+              var ta = form ? form.querySelector('textarea,input[type="text"],div[contenteditable="true"]') : null;
+              if (!ta) ta = document.querySelector('textarea:focus,input:focus,[contenteditable="true"]:focus');
+              if (!ta) {
+                // 兜底：页面主输入框
+                var tas = document.querySelectorAll('textarea,div[contenteditable="true"]');
+                for (var i=tas.length-1;i>=0;i--){
+                  var v = (tas[i].value||tas[i].innerText||'').trim();
+                  if (v.length>0){ ta = tas[i]; break; }
+                }
+              }
+              var val = (ta ? (ta.value || ta.innerText || '') : '').trim();
+              if (val && isQuickCommand(val)){
+                e.preventDefault();
+                e.stopPropagation();
+                AndroidBridge && AndroidBridge.onDirectCommand && AndroidBridge.onDirectCommand(val);
+                if (ta) {
+                  if (ta.tagName === 'TEXTAREA' || ta.tagName === 'INPUT') ta.value = '';
+                  else ta.innerText = '';
+                }
+                return false;
+              }
+            }
+          }, true);
+
+          // 也尝试给当前已存在的输入框绑定
+          var existing = document.querySelectorAll('textarea,input[type="text"],div[contenteditable="true"]');
+          existing.forEach(tryIntercept);
+
+          // 动态新增输入框也绑定
+          var mo = new MutationObserver(function(muts){
+            muts.forEach(function(m){
+              m.addedNodes.forEach(function(n){
+                if (n.nodeType === 1){
+                  if (n.matches && (n.matches('textarea') || n.matches('input') || n.matches('[contenteditable="true"]'))) tryIntercept(n);
+                  if (n.querySelectorAll) {
+                    n.querySelectorAll('textarea,input[type="text"],div[contenteditable="true"]').forEach(tryIntercept);
+                  }
+                }
+              });
+            });
+          });
+          mo.observe(document.body, {childList:true, subtree:true});
+        })();
+        """.trimIndent()
+        b.webView.evaluateJavascript(js, null)
+    }
+
+    /** 处理本地快捷指令：直接解析并 root 执行，不走 AI。 */
+    private fun handleDirectCommand(text: String) {
+        CommandLogManager.info("快捷指令: $text")
+        val t = text.trim()
+        val cmd: AgentCommand? = when {
+            t.matches(Regex("^打开(.+)$")) -> {
+                val app = t.replaceFirst("打开", "").trim()
+                AgentCommand(action = "open_app", target = app, pkg = app)
+            }
+            t.matches(Regex("^启动(.+)$")) -> {
+                val app = t.replaceFirst("启动", "").trim()
+                AgentCommand(action = "open_app", target = app, pkg = app)
+            }
+            t.matches(Regex("^(返回|-back)$")) -> AgentCommand(action = "back")
+            t.matches(Regex("^(回桌面|home|桌面)$", RegexOption.IGNORE_CASE)) -> AgentCommand(action = "home")
+            t.matches(Regex("^(最近任务|多任务|recents)$", RegexOption.IGNORE_CASE)) -> AgentCommand(action = "recents")
+            t.matches(Regex("^(截图|截屏|screenshot)$", RegexOption.IGNORE_CASE)) -> AgentCommand(action = "screenshot")
+            t.matches(Regex("^(等待|sleep|延时)\\s*(\\d+)(秒|s|毫秒|ms)?$", RegexOption.IGNORE_CASE)) -> {
+                val ms = Regex("\\d+").find(t)?.value?.toLongOrNull() ?: 1000
+                val isSec = t.contains("秒") || t.contains("s")
+                AgentCommand(action = "wait", ms = if (isSec) ms * 1000 else ms)
+            }
+            t.matches(Regex("^(点击|click)\\s*(.+)$", RegexOption.IGNORE_CASE)) -> {
+                val target = t.replaceFirst(Regex("^(点击|click)\\s*", RegexOption.IGNORE_CASE), "").trim()
+                AgentCommand(action = "click", target = target)
+            }
+            t.matches(Regex("^(输入|input)\\s*(.+)$", RegexOption.IGNORE_CASE)) -> {
+                val txt = t.replaceFirst(Regex("^(输入|input)\\s*", RegexOption.IGNORE_CASE), "").trim()
+                AgentCommand(action = "input_text", text = txt)
+            }
+            t.matches(Regex("^(滑动|swipe)\\s*(.+)$", RegexOption.IGNORE_CASE)) -> {
+                val coords = t.replaceFirst(Regex("^(滑动|swipe)\\s*", RegexOption.IGNORE_CASE), "").trim()
+                AgentCommand(action = "swipe", target = coords)
+            }
+            t.matches(Regex("^(停止|杀掉)\\s*(.+)$", RegexOption.IGNORE_CASE)) -> {
+                val app = t.replaceFirst(Regex("^(停止|杀掉)\\s*", RegexOption.IGNORE_CASE), "").trim()
+                AgentCommand(action = "force_stop", target = app, pkg = app)
+            }
+            t.matches(Regex("^(长按|longpress)\\s*(.+)$", RegexOption.IGNORE_CASE)) -> {
+                val target = t.replaceFirst(Regex("^(长按|longpress)\\s*", RegexOption.IGNORE_CASE), "").trim()
+                val parts = target.split(",").map { it.trim().toFloatOrNull() ?: 0f }
+                if (parts.size >= 2) {
+                    AgentCommand(action = "long_press", x = parts[0], y = parts[1])
+                } else {
+                    AgentCommand(action = "long_press", target = target)
+                }
+            }
+            t.matches(Regex("^(向上滚动|上滑|scroll up)$", RegexOption.IGNORE_CASE)) -> AgentCommand(action = "scroll", direction = "up")
+            t.matches(Regex("^(向下滚动|下滑|scroll down)$", RegexOption.IGNORE_CASE)) -> AgentCommand(action = "scroll", direction = "down")
+            else -> null
+        }
+
+        if (cmd == null) {
+            CommandLogManager.warn("未识别的快捷指令: $t")
+            Toast.makeText(this, "未识别指令: $t", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        Toast.makeText(this, "执行: ${cmd.action}", Toast.LENGTH_SHORT).show()
+        Thread {
+            val ok = HybridExecutor.execute(cmd)
+            CommandLogManager.info("快捷指令结果: ${cmd.action} -> $ok")
+        }.start()
     }
 
     /** 处理 AI 回复：解析 + 可选自动执行。 */

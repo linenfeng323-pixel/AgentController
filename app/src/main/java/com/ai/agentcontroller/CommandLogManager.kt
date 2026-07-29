@@ -45,4 +45,18 @@ object CommandLogManager {
     fun stopObserve(cb: (String) -> Unit) {
         listeners.remove(cb)
     }
+
+    /** 最近快照（带级别信息）。 */
+    data class LogEntry(val time: String, val level: String, val message: String)
+
+    fun snapshot(): List<LogEntry> {
+        val entries = mutableListOf<LogEntry>()
+        val lineRegex = Regex("""^\[(\d{2}:\d{2}:\d{2})\]\s+(\w+):\s*(.+)$""")
+        sb.lineSequence().forEach { line ->
+            lineRegex.find(line)?.let { m ->
+                entries.add(LogEntry(m.groupValues[1], m.groupValues[2], m.groupValues[3]))
+            }
+        }
+        return entries
+    }
 }

@@ -43,14 +43,43 @@ object HybridExecutor {
                 "home" -> AccessibilityExecutor.home()
                 "recents", "recent_apps" -> AccessibilityExecutor.recents()
                 "wait", "sleep" -> { Thread.sleep(cmd.ms.coerceIn(0, 10000)); true }
-                "open_app", "launch_app" -> AccessibilityExecutor.launchApp(cmd.pkg ?: cmd.target ?: "")
+                "open_app", "launch_app" -> AppLauncher.launch(cmd.pkg ?: cmd.target ?: "")
                 "open_url" -> RootShellExecutor.launchUrl(cmd.target ?: "").ok
                 "force_stop" -> RootShellExecutor.forceStop(cmd.pkg ?: cmd.target ?: "").ok
                 "clear_data" -> RootShellExecutor.clearAppData(cmd.pkg ?: cmd.target ?: "").ok
                 "keyevent", "key" -> RootShellExecutor.keyEvent(cmd.amount).ok
                 "volume_up" -> RootShellExecutor.volumeUp().ok
                 "volume_down" -> RootShellExecutor.volumeDown().ok
-                "power" -> RootShellExecutor.powerDialog().ok
+                "volume_set" -> { DeviceControlManager.setVolume(cmd.amount); true }
+                "media_play" -> { DeviceControlManager.mediaPlayPause(); true }
+                "media_next" -> { DeviceControlManager.mediaNext(); true }
+                "media_prev" -> { DeviceControlManager.mediaPrev(); true }
+                "media_stop" -> { DeviceControlManager.mediaStop(); true }
+                "set_wifi" -> { DeviceControlManager.setWifi(cmd.target?.toBoolean() ?: true) }
+                "set_bt" -> { DeviceControlManager.setBluetooth(cmd.target?.toBoolean() ?: true) }
+                "set_location" -> { DeviceControlManager.setLocation(cmd.target?.toBoolean() ?: true) }
+                "set_airplane" -> { DeviceControlManager.setAirplane(cmd.target?.toBoolean() ?: true) }
+                "set_rotate" -> { DeviceControlManager.setAutoRotate(cmd.target?.toBoolean() ?: true) }
+                "set_dark" -> { DeviceControlManager.setDarkMode(cmd.target?.toBoolean() ?: true) }
+                "set_dnd" -> { DeviceControlManager.setDnd(cmd.target?.toBoolean() ?: true) }
+                "freeze_app" -> { DeviceControlManager.freezeApp(cmd.pkg ?: cmd.target ?: "", cmd.target != "unfreeze") }
+                "unfreeze_app" -> { DeviceControlManager.freezeApp(cmd.pkg ?: cmd.target ?: "", frozen = false) }
+                "send_sms" -> {
+                    val parts = (cmd.target ?: "").split(" ", limit = 2)
+                    if (parts.size == 2) DeviceControlManager.sendSms(parts[0], parts[1]) else false
+                }
+                "wifi_passwords" -> { CommandLogManager.info(DeviceControlManager.getWifiPasswords()); true }
+                "create_alarm" -> {
+                    val r = Regex("(\\d{1,2}):(\\d{2})").find(cmd.target ?: "")
+                    if (r != null) {
+                        val h = r.groupValues[1].toInt(); val m = r.groupValues[2].toInt()
+                        DeviceControlManager.createAlarm(h, m, cmd.text ?: ""); true
+                    } else false
+                }
+                "create_timer" -> {
+                    val s = Regex("(\\d+)").find(cmd.target ?: "")?.groupValues?.get(1)?.toIntOrNull() ?: 60
+                    DeviceControlManager.createTimer(s, cmd.text ?: ""); true
+                }
                 "screenshot" -> {
                     val f = File(App.instance.cacheDir, "shot_${System.currentTimeMillis()}.png")
                     val ok = RootShellExecutor.screenshot(f)

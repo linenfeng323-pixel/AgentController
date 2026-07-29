@@ -34,7 +34,23 @@ object ConfigManager {
         var pcBridgeEnabled: Boolean = false,
         var pcBridgeUrl: String = "ws://192.168.1.100:9912",
         var recentGoals: MutableList<String> = mutableListOf(),
-        var favorites: MutableList<String> = mutableListOf()
+        var favorites: MutableList<String> = mutableListOf(),
+        var deepThinking: Boolean = false,
+        var webBrowsingEnabled: Boolean = true,
+        var deviceDirectAccess: Boolean = true,
+        var sensitiveRead: Boolean = false,
+        var sensitiveOperate: Boolean = false,
+        var terminalEnabled: Boolean = true,
+        var linuxEnvEnabled: Boolean = true,
+        var workspaceDir: String = "/storage/emulated/0/XINCODE",
+        var currentProfile: String = "default",
+        var mainModelUrl: String = "",
+        var visionModelUrl: String = "",
+        var translateModelUrl: String = "",
+        var reasonModelUrl: String = "",
+        var contextSummary: Boolean = true,
+        var backgroundReview: Boolean = false,
+        var mcpEnabled: Boolean = false
     )
 
     @Volatile private var current: Config = Config()
@@ -116,6 +132,22 @@ object ConfigManager {
             put("pcBridgeUrl", cfg.pcBridgeUrl)
             put("recentGoals", arr)
             put("favorites", fav)
+            put("deepThinking", cfg.deepThinking)
+            put("webBrowsingEnabled", cfg.webBrowsingEnabled)
+            put("deviceDirectAccess", cfg.deviceDirectAccess)
+            put("sensitiveRead", cfg.sensitiveRead)
+            put("sensitiveOperate", cfg.sensitiveOperate)
+            put("terminalEnabled", cfg.terminalEnabled)
+            put("linuxEnvEnabled", cfg.linuxEnvEnabled)
+            put("workspaceDir", cfg.workspaceDir)
+            put("currentProfile", cfg.currentProfile)
+            put("mainModelUrl", cfg.mainModelUrl)
+            put("visionModelUrl", cfg.visionModelUrl)
+            put("translateModelUrl", cfg.translateModelUrl)
+            put("reasonModelUrl", cfg.reasonModelUrl)
+            put("contextSummary", cfg.contextSummary)
+            put("backgroundReview", cfg.backgroundReview)
+            put("mcpEnabled", cfg.mcpEnabled)
         }
         f.writeText(o.toString(2))
     }
@@ -138,7 +170,23 @@ object ConfigManager {
             },
             favorites = (o.optJSONArray("favorites") ?: JSONArray()).let { arr ->
                 MutableList(arr.length()) { arr.optString(it) }.filter { it.isNotBlank() }.toMutableList()
-            }
+            },
+            deepThinking = o.optBoolean("deepThinking", false),
+            webBrowsingEnabled = o.optBoolean("webBrowsingEnabled", true),
+            deviceDirectAccess = o.optBoolean("deviceDirectAccess", true),
+            sensitiveRead = o.optBoolean("sensitiveRead", false),
+            sensitiveOperate = o.optBoolean("sensitiveOperate", false),
+            terminalEnabled = o.optBoolean("terminalEnabled", true),
+            linuxEnvEnabled = o.optBoolean("linuxEnvEnabled", true),
+            workspaceDir = o.optString("workspaceDir", "/storage/emulated/0/XINCODE"),
+            currentProfile = o.optString("currentProfile", "default"),
+            mainModelUrl = o.optString("mainModelUrl"),
+            visionModelUrl = o.optString("visionModelUrl"),
+            translateModelUrl = o.optString("translateModelUrl"),
+            reasonModelUrl = o.optString("reasonModelUrl"),
+            contextSummary = o.optBoolean("contextSummary", true),
+            backgroundReview = o.optBoolean("backgroundReview", false),
+            mcpEnabled = o.optBoolean("mcpEnabled", false)
         )
     } catch (e: Throwable) {
         CommandLogManager.err("读取配置失败: ${e.message}")
