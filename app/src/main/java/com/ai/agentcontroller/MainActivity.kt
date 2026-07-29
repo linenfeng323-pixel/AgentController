@@ -206,6 +206,28 @@ class MainActivity : AppCompatActivity() {
         v.findViewById<EditText>(R.id.etBridgeUrl).setText(cfg.pcBridgeUrl)
         v.findViewById<EditText>(R.id.etMaxSteps).setText(cfg.maxSteps.toString())
 
+        // 新增开关
+        v.findViewById<android.widget.CheckBox>(R.id.cbDeepThinking).isChecked = cfg.deepThinking
+        v.findViewById<android.widget.CheckBox>(R.id.cbWebBrowsing).isChecked = cfg.webBrowsingEnabled
+        v.findViewById<android.widget.CheckBox>(R.id.cbDeviceDirect).isChecked = cfg.deviceDirectAccess
+        v.findViewById<android.widget.CheckBox>(R.id.cbSensitiveRead).isChecked = cfg.sensitiveRead
+        v.findViewById<android.widget.CheckBox>(R.id.cbSensitiveOp).isChecked = cfg.sensitiveOperate
+        v.findViewById<android.widget.CheckBox>(R.id.cbTerminal).isChecked = cfg.terminalEnabled
+        v.findViewById<android.widget.CheckBox>(R.id.cbLinuxEnv).isChecked = cfg.linuxEnvEnabled
+        v.findViewById<android.widget.CheckBox>(R.id.cbMcp).isChecked = cfg.mcpEnabled
+        v.findViewById<android.widget.CheckBox>(R.id.cbContextSummary).isChecked = cfg.contextSummary
+        v.findViewById<android.widget.CheckBox>(R.id.cbBgReview).isChecked = cfg.backgroundReview
+
+        // GitHub 配置
+        v.findViewById<EditText>(R.id.etGithubToken).setText(cfg.githubToken)
+        v.findViewById<EditText>(R.id.etGithubRepo).setText(cfg.githubRepo)
+        v.findViewById<EditText>(R.id.etGithubBranch).setText(cfg.githubBranch)
+        v.findViewById<EditText>(R.id.etMainModelUrl).setText(cfg.mainModelUrl)
+        v.findViewById<EditText>(R.id.etVisionModelUrl).setText(cfg.visionModelUrl)
+        v.findViewById<EditText>(R.id.etTranslateModelUrl).setText(cfg.translateModelUrl)
+        v.findViewById<EditText>(R.id.etReasonModelUrl).setText(cfg.reasonModelUrl)
+        v.findViewById<EditText>(R.id.etWorkspaceDir).setText(cfg.workspaceDir)
+
         v.findViewById<View>(R.id.btnSaveCfg).setOnClickListener {
             val c = ConfigManager.get()
             c.autoExecute = v.findViewById<android.widget.CheckBox>(R.id.cbAutoExec).isChecked
@@ -215,7 +237,30 @@ class MainActivity : AppCompatActivity() {
             c.pcBridgeEnabled = v.findViewById<android.widget.CheckBox>(R.id.cbBridge).isChecked
             c.pcBridgeUrl = v.findViewById<EditText>(R.id.etBridgeUrl).text.toString()
             c.maxSteps = v.findViewById<EditText>(R.id.etMaxSteps).text.toString().toIntOrNull() ?: 30
+
+            c.deepThinking = v.findViewById<android.widget.CheckBox>(R.id.cbDeepThinking).isChecked
+            c.webBrowsingEnabled = v.findViewById<android.widget.CheckBox>(R.id.cbWebBrowsing).isChecked
+            c.deviceDirectAccess = v.findViewById<android.widget.CheckBox>(R.id.cbDeviceDirect).isChecked
+            c.sensitiveRead = v.findViewById<android.widget.CheckBox>(R.id.cbSensitiveRead).isChecked
+            c.sensitiveOperate = v.findViewById<android.widget.CheckBox>(R.id.cbSensitiveOp).isChecked
+            c.terminalEnabled = v.findViewById<android.widget.CheckBox>(R.id.cbTerminal).isChecked
+            c.linuxEnvEnabled = v.findViewById<android.widget.CheckBox>(R.id.cbLinuxEnv).isChecked
+            c.mcpEnabled = v.findViewById<android.widget.CheckBox>(R.id.cbMcp).isChecked
+            c.contextSummary = v.findViewById<android.widget.CheckBox>(R.id.cbContextSummary).isChecked
+            c.backgroundReview = v.findViewById<android.widget.CheckBox>(R.id.cbBgReview).isChecked
+
+            c.githubToken = v.findViewById<EditText>(R.id.etGithubToken).text.toString().trim()
+            c.githubRepo = v.findViewById<EditText>(R.id.etGithubRepo).text.toString().trim()
+            c.githubBranch = v.findViewById<EditText>(R.id.etGithubBranch).text.toString().trim().ifBlank { "main" }
+            c.mainModelUrl = v.findViewById<EditText>(R.id.etMainModelUrl).text.toString().trim()
+            c.visionModelUrl = v.findViewById<EditText>(R.id.etVisionModelUrl).text.toString().trim()
+            c.translateModelUrl = v.findViewById<EditText>(R.id.etTranslateModelUrl).text.toString().trim()
+            c.reasonModelUrl = v.findViewById<EditText>(R.id.etReasonModelUrl).text.toString().trim()
+            c.workspaceDir = v.findViewById<EditText>(R.id.etWorkspaceDir).text.toString().trim().ifBlank { "/storage/emulated/0/XINCODE" }
+
             ConfigManager.save(c)
+            // 如果 MCP 开启，则启动
+            if (c.mcpEnabled) { McpServerExt.start(); McpServerManager.startLocal() }
             toast("已保存")
         }
         v.findViewById<View>(R.id.btnRestoreCfg).setOnClickListener {

@@ -85,24 +85,23 @@ object NaturalLanguageResolver {
         }
 
         // ===== GM 内存修改 =====
-        when {
-            t == "root 状态" || t == "root 权限" ->
-                return Resolved(listOf(AgentCommand("shell", target = "id")))
-            t.contains("进程列表") -> return Resolved(mcpTool = "gm_process_list", mcpArgs = JSONObject())
-            Regex("(读取内存|memory read)\\s+(0x[0-9a-fA-F]+|\\d+)\\s*(pid=)?(\\d+)?").find(t)?.let { m ->
-                return Resolved(mcpTool = "gm_memory_read", mcpArgs = JSONObject()
-                    .put("address", m.groupValues[1])
-                    .put("pid", m.groupValues[3].ifBlank { "0" }))
-            }
-            Regex("(写入内存|memory write)\\s+(0x[0-9a-fA-F]+|\\d+)\\s*=\\s*(\\S+)").find(t)?.let { m ->
-                return Resolved(mcpTool = "gm_memory_write", mcpArgs = JSONObject()
-                    .put("address", m.groupValues[1]).put("value", m.groupValues[2]))
-            }
-            Regex("(内存搜索|memory search)\\s*(.+?)(\\s+pid=(\\d+))?$").find(t)?.let { m ->
-                return Resolved(mcpTool = "gm_memory_search", mcpArgs = JSONObject()
-                    .put("value", m.groupValues[2].trim())
-                    .put("pid", (m.groupValues.getOrNull(4) ?: "0")))
-            }
+        if (t == "root 状态" || t == "root 权限")
+            return Resolved(listOf(AgentCommand("shell", target = "id")))
+        if (t.contains("进程列表"))
+            return Resolved(mcpTool = "gm_process_list", mcpArgs = JSONObject())
+        Regex("(读取内存|memory read)\\s+(0x[0-9a-fA-F]+|\\d+)\\s*(pid=)?(\\d+)?").find(t)?.let { m ->
+            return Resolved(mcpTool = "gm_memory_read", mcpArgs = JSONObject()
+                .put("address", m.groupValues[1])
+                .put("pid", m.groupValues[3].ifBlank { "0" }))
+        }
+        Regex("(写入内存|memory write)\\s+(0x[0-9a-fA-F]+|\\d+)\\s*=\\s*(\\S+)").find(t)?.let { m ->
+            return Resolved(mcpTool = "gm_memory_write", mcpArgs = JSONObject()
+                .put("address", m.groupValues[1]).put("value", m.groupValues[2]))
+        }
+        Regex("(内存搜索|memory search)\\s*(.+?)(\\s+pid=(\\d+))?$").find(t)?.let { m ->
+            return Resolved(mcpTool = "gm_memory_search", mcpArgs = JSONObject()
+                .put("value", m.groupValues[2].trim())
+                .put("pid", (m.groupValues.getOrNull(4) ?: "0")))
         }
 
         // ===== 脚本 / Python / Lua / 计算 =====

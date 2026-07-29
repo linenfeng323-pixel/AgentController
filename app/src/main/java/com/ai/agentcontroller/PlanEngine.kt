@@ -54,7 +54,7 @@ object PlanEngine {
         val id = "plan_${System.currentTimeMillis()}_${seq.incrementAndGet()}"
         val state = PlanState(id, tasks)
         plans[id] = state
-        McpServerManager.emit("plan", JSONObject().put("type", "plan_created").put("plan", state.toJson()))
+        McpServerExt.emit("plan", JSONObject().put("type", "plan_created").put("plan", state.toJson()))
         return state
     }
 
@@ -110,7 +110,7 @@ object PlanEngine {
             for (task in ready) {
                 task.status = Task.Status.RUNNING
                 onUpdate(plan)
-                McpServerManager.emit("plan", JSONObject().put("type", "plan_update").put("plan", plan.toJson()).put("taskId", task.id))
+                McpServerExt.emit("plan", JSONObject().put("type", "plan_update").put("plan", plan.toJson()).put("taskId", task.id))
                 var ok = false
                 var lastErr: String? = null
                 repeat(3) { attempt ->
@@ -130,7 +130,7 @@ object PlanEngine {
                 done.add(task.id)
                 progressed = true
                 onUpdate(plan)
-                McpServerManager.emit("plan", JSONObject().put("type", "plan_update").put("plan", plan.toJson()).put("taskId", task.id))
+                McpServerExt.emit("plan", JSONObject().put("type", "plan_update").put("plan", plan.toJson()).put("taskId", task.id))
             }
             if (!progressed) break
         }
@@ -140,7 +140,7 @@ object PlanEngine {
         }
         plan.tasks.firstOrNull()?.result = summary
         onUpdate(plan)
-        McpServerManager.emit("plan", JSONObject().put("type", "plan_done").put("plan", plan.toJson()))
+        McpServerExt.emit("plan", JSONObject().put("type", "plan_done").put("plan", plan.toJson()))
     }
 
     private fun runOne(task: Task, plan: PlanState): Boolean {

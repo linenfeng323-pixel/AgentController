@@ -121,7 +121,7 @@ object McpServerExt {
                         body = args.optString("body"),
                         headers = args.optJSONObject("headers")
                     )
-                    JSONObject().put("content", JSON(listOf(mapOf("type" to "text", "text" to r))))
+                    JSONObject().put("content", org.json.JSONArray().put(org.json.JSONObject().put("type","text").put("text", r)))
                 }
                 "web" -> toolResult("web 工具需要离屏浏览器 WebView，已在 WebViewActivity 实现")
                 "lua" -> {
@@ -162,17 +162,15 @@ object McpServerExt {
                 "mt_apk_modify_res", "mt_apk_smali_edit", "mt_apk_repack" -> {
                     toolResult("MT APK 工具调用中…（需本机已连接 MT 管理器 APK MCP）")
                 }
-                else -> JSONObject().put("content", JSON(listOf(mapOf("type" to "text", "text" to "unknown tool: $name"))))
+                else -> JSONObject().put("content", org.json.JSONArray().put(org.json.JSONObject().put("type","text").put("text", "unknown tool: $name")))
             }
         }.getOrElse { toolResult("调用失败: ${it.message}", true) }
     }
 
     private fun toolResult(text: String, isError: Boolean = false): JSONObject {
-        val content = JSON(listOf(mapOf("type" to "text", "text" to text)))
+        val content = org.json.JSONArray().put(org.json.JSONObject().put("type", "text").put("text", text))
         return if (isError) JSONObject().put("content", content).put("isError", true) else JSONObject().put("content", content)
     }
-
-    private fun JSON(o: Any): org.json.JSONArray = org.json.JSONArray(o)
 
     private fun runPython(code: String): String {
         // 三层回退：python3 -> python -> 简单 shell eval
@@ -181,7 +179,7 @@ object McpServerExt {
         val r = TerminalManager.shell("python3 $tmp 2>&1 || python $tmp 2>&1", false)
         if (r.ok) return r.out
         // 更最后一层：用 Termux 的 python
-        val r2 = TerminalManager.shell("$PREFIX/bin/python3 $tmp 2>&1 || /data/data/com.termux/files/usr/bin/python3 $tmp 2>&1", false)
+        val r2 = TerminalManager.shell("/data/data/com.termux/files/usr/bin/python3 $tmp 2>&1", false)
         return (r2.out.ifBlank { r2.err }).ifBlank { "本机未安装 python，建议在 Termux 中 `pkg install python` 后重试" }
     }
 
@@ -216,28 +214,52 @@ object HttpRequestTool {
 object MathEval {
     fun eval(expr: String): Double? {
         val s = expr.filter { !it.isWhitespace() }
+        if (s.isBlank()) return null
+        val p = Parser(s)
+        val r = p.parseExpr()
+        return if (p.i == s.length) r else null
+    }
+
+    private class Parser(val s: String) {
         var i = 0
+
         fun peek(): Char? = s.getOrNull(i)
         fun eat(c: Char): Boolean { if (peek() == c) { i++; return true }; return false }
+
         fun parseNumber(): Double? {
             val start = i
-            while (i < s.length && (s[i].isDigit() || s[i] == '.' || (s[i] == '-' && (i == 0 || s[i-1] in listOf('+','-','*','/','(')))) i++
-            val sub = s.substring(start, i).ifBlank { return null }
+            if (i < s.length && s[i] == '-') i++
+            while (i < s.length && (s[i].isDigit() || s[i] == '.')) i++
+            if (i == start) return null
+            val sub = s.substring(start, i)
             return sub.toDoubleOrNull()
         }
+
         fun parseFactor(): Double? {
             if (eat('(')) { val v = parseExpr(); eat(')'); return v }
             return parseNumber()
         }
+
         fun parseTerm(): Double? {
             var a = parseFactor() ?: return null
-            while (true) { when { eat('*') -> a = a * (parseFactor() ?: return null); eat('/') -> a = a / (parseFactor() ?: return null); else -> return a } }
+            while (true) {
+                when {
+                    eat('*') -> a = a * (parseFactor() ?: return null)
+                    eat('/') -> { val b = parseFactor() ?: return null; a = if (b == 0.0) return null else a / b }
+                    else -> return a
+                }
+            }
         }
+
         fun parseExpr(): Double? {
             var a = parseTerm() ?: return null
-            while (true) { when { eat('+') -> a = a + (parseTerm() ?: return null); eat('-') -> a = a - (parseTerm() ?: return null); else -> return a } }
+            while (true) {
+                when {
+                    eat('+') -> a = a + (parseTerm() ?: return null)
+                    eat('-') -> a = a - (parseTerm() ?: return null)
+                    else -> return a
+                }
+            }
         }
-        val r = parseExpr()
-        return if (i == s.length) r else null
     }
 }

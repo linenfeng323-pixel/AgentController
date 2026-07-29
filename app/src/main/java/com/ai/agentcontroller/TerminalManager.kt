@@ -122,7 +122,12 @@ object TerminalManager {
         companion object {
             fun fromJson(o: JSONObject) = EnvProfile(
                 name = o.optString("name"),
-                env = o.optJSONObject("env")?.run { keys().associateWith { optString(it) } } ?: emptyMap(),
+                env = o.optJSONObject("env")?.let { jo ->
+                    val m = mutableMapOf<String, String>()
+                    val keys = jo.keys()
+                    while (keys.hasNext()) { val k = keys.next(); m[k] = jo.optString(k) }
+                    m.toMap()
+                } ?: emptyMap(),
                 pathExt = (o.optJSONArray("pathExt") ?: JSONArray()).let { list -> (0 until list.length()).map { list.optString(it) } },
                 tools = (o.optJSONArray("tools") ?: JSONArray()).let { list -> (0 until list.length()).map { list.optString(it) } }
             )
@@ -169,7 +174,7 @@ object TerminalManager {
             if (p != null) {
                 p.env.forEach { (k, v) -> append("export $k='$v'; ") }
                 if (p.pathExt.isNotEmpty()) {
-                    append("export PATH='${p.pathExt.joinToString(":")}':$PATH; ")
+                    append("export PATH='${p.pathExt.joinToString(":")}':\${PATH}; ")
                 }
             }
         }

@@ -34,7 +34,8 @@ object DeviceControlManager {
             putExtra(AlarmClock.EXTRA_HOUR, hour)
             putExtra(AlarmClock.EXTRA_MINUTES, minute)
             putExtra(AlarmClock.EXTRA_MESSAGE, label)
-            putExtra(AlarmClock.EXTRA_ENABLE, enabled)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
+                putExtra(AlarmClock.EXTRA_VIBRATE, enabled)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         return try {
@@ -102,7 +103,8 @@ object DeviceControlManager {
     }
 
     fun setLocation(enabled: Boolean): Boolean {
-        val mode = if (enabled) Settings.Secure.LOCATION_MODE_HIGH_POWER else Settings.Secure.LOCATION_MODE_OFF
+        // LOCATION_MODE_HIGH_POWER=3, LOCATION_MODE_OFF=0
+        val mode = if (enabled) 3 else 0
         val r = RootShellExecutor.putSetting("secure", "location_mode", mode.toString())
         return r.ok
     }

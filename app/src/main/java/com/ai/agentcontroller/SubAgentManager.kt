@@ -33,7 +33,7 @@ object SubAgentManager {
         companion object {
             fun fromJson(o: JSONObject) = SubAgent(
                 o.optString("name"), o.optString("role"), o.optString("modelUrl"),
-                (o.optJSONArray("skills") ?: JSONArray()).let { (0 until it.length()).map { it.optString(it) } },
+                (o.optJSONArray("skills") ?: JSONArray()).let { arr -> (0 until arr.length()).map { arr.optString(it) } },
                 o.optBoolean("enabled", true)
             )
         }
@@ -52,7 +52,7 @@ object SubAgentManager {
         companion object {
             fun fromJson(o: JSONObject) = Room(
                 o.optString("name"),
-                (o.optJSONArray("members") ?: JSONArray()).let { (0 until it.length()).map { it.optString(it) } },
+                (o.optJSONArray("members") ?: JSONArray()).let { arr -> (0 until arr.length()).map { arr.optString(it) } },
                 (o.optJSONArray("history") ?: JSONArray()).let { arr ->
                     (0 until arr.length()).map { RoomMessage.fromJson(arr.getJSONObject(it)) }
                 }

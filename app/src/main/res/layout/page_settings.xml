@@ -139,6 +139,263 @@
             android:text="开启悬浮窗权限"
             android:textColor="@color/text_main" />
 
+        <!-- ===== GitHub 自动编译 ===== -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="GitHub 自动编译"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_card_round"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <CheckBox
+                android:id="@+id/cbDeepThinking"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="默认启用深度思考"
+                android:textColor="@color/text_main" />
+
+            <CheckBox
+                android:id="@+id/cbWebBrowsing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="启用网页浏览工具"
+                android:textColor="@color/text_main" />
+
+            <CheckBox
+                android:id="@+id/cbDeviceDirect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="启用设备直达工具（闹钟/音量/媒体）"
+                android:textColor="@color/text_main" />
+
+            <CheckBox
+                android:id="@+id/cbSensitiveRead"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="允许读取敏感设备信息（通知/短信/WiFi密码）"
+                android:textColor="@color/text_main" />
+
+            <CheckBox
+                android:id="@+id/cbSensitiveOp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="允许敏感设备操作（发微信/冻结应用/改系统）"
+                android:textColor="@color/text_main" />
+
+            <CheckBox
+                android:id="@+id/cbTerminal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="启用终端/文件工具（root shell + 文件读写）"
+                android:textColor="@color/text_main" />
+
+            <CheckBox
+                android:id="@+id/cbLinuxEnv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Linux 工具环境（Python/Git/jq/zip 等）"
+                android:textColor="@color/text_main" />
+
+            <CheckBox
+                android:id="@+id/cbMcp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="启用 MCP 服务器"
+                android:textColor="@color/text_main" />
+
+            <CheckBox
+                android:id="@+id/cbContextSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="上下文总结"
+                android:textColor="@color/text_main" />
+
+            <CheckBox
+                android:id="@+id/cbBgReview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="后台复盘"
+                android:textColor="@color/text_main" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="GitHub Token (PAT)"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp" />
+
+        <EditText
+            android:id="@+id/etGithubToken"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_search_bar"
+            android:hint="ghp_xxxxxxxx"
+            android:inputType="textPassword"
+            android:padding="10dp"
+            android:textColor="@color/text_main"
+            android:textColorHint="@color/text_sub"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="GitHub 仓库 (owner/repo)"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp" />
+
+        <EditText
+            android:id="@+id/etGithubRepo"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_search_bar"
+            android:hint="linenfeng323-pixel/AgentController"
+            android:inputType="text"
+            android:padding="10dp"
+            android:textColor="@color/text_main"
+            android:textColorHint="@color/text_sub"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="分支名"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp" />
+
+        <EditText
+            android:id="@+id/etGithubBranch"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_search_bar"
+            android:hint="main"
+            android:inputType="text"
+            android:padding="10dp"
+            android:textColor="@color/text_main"
+            android:textColorHint="@color/text_sub"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="主模型 URL（可空=用网页内置）"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp" />
+
+        <EditText
+            android:id="@+id/etMainModelUrl"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_search_bar"
+            android:hint="https://api.example.com/v1"
+            android:inputType="textUri"
+            android:padding="10dp"
+            android:textColor="@color/text_main"
+            android:textColorHint="@color/text_sub"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="视觉模型 URL（可空）"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp" />
+
+        <EditText
+            android:id="@+id/etVisionModelUrl"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_search_bar"
+            android:hint="https://api.example.com/vision"
+            android:inputType="textUri"
+            android:padding="10dp"
+            android:textColor="@color/text_main"
+            android:textColorHint="@color/text_sub"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="翻译模型 URL（可空）"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp" />
+
+        <EditText
+            android:id="@+id/etTranslateModelUrl"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_search_bar"
+            android:hint="https://api.example.com/translate"
+            android:inputType="textUri"
+            android:padding="10dp"
+            android:textColor="@color/text_main"
+            android:textColorHint="@color/text_sub"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="推理模型 URL（可空）"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp" />
+
+        <EditText
+            android:id="@+id/etReasonModelUrl"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_search_bar"
+            android:hint="https://api.example.com/reason"
+            android:inputType="textUri"
+            android:padding="10dp"
+            android:textColor="@color/text_main"
+            android:textColorHint="@color/text_sub"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="工作区目录"
+            android:textColor="@color/text_sub"
+            android:textSize="12sp" />
+
+        <EditText
+            android:id="@+id/etWorkspaceDir"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_search_bar"
+            android:hint="/storage/emulated/0/XINCODE"
+            android:inputType="text"
+            android:padding="10dp"
+            android:textColor="@color/text_main"
+            android:textColorHint="@color/text_sub"
+            android:textSize="13sp" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
