@@ -185,7 +185,7 @@ object AiDialogueManager {
             }
             appendLine("\n请执行以上任务。")
         }
-        history.add(Message(Role.EXECUTOR, "收到 ${tasks.size} 个任务，开始执行...", null, null))
+        history.add(Message(Role.EXECUTOR, "收到 ${tasks.size} 个任务，开始执行..."))
 
         return JSONObject().apply {
             put("status", "executor_turn")
@@ -208,7 +208,7 @@ object AiDialogueManager {
             val args = callTool.optJSONObject("args") ?: JSONObject()
             // 实际执行红队工具
             val result = RedTeamEngine.callTool(toolName, args)
-            history.add(Message(Role.EXECUTOR, aiReply, toolName, result.text))
+            history.add(Message(Role.EXECUTOR, aiReply, toolCall = toolName, toolResult = result.text))
             toolResults.add(JSONObject().apply {
                 put("tool", toolName)
                 put("args", args)
@@ -250,7 +250,7 @@ object AiDialogueManager {
     /** 直接执行红队工具（跳过AI，供前端直接调用） */
     fun directCallTool(name: String, args: JSONObject): JSONObject {
         val result = RedTeamEngine.callTool(name, args)
-        history.add(Message(Role.SYSTEM, "直接调用工具: $name", name, result.text))
+        history.add(Message(Role.SYSTEM, "直接调用工具: $name", toolCall = name, toolResult = result.text))
         return JSONObject().apply {
             put("tool", name)
             put("ok", result.ok)

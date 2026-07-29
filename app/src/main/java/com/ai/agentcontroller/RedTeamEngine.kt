@@ -140,7 +140,7 @@ object RedTeamEngine {
         val cmds = portList.map { p ->
             "echo >/dev/tcp/$target/$p 2>/dev/null && echo OPEN:$p || true"
         }
-        val r = RootShellExecutor.execBatch(cmds.take(200), true)
+        val r = RootShellExecutor.execBatch(cmds.take(200), 30_000L)
         Regex("""OPEN:(\d+)""").findAll(r.out).forEach { openPorts.add(it.groupValues[1].toInt()) }
         val data = JSONObject().put("openPorts", JSONArray(openPorts)).put("target", target)
         return ToolResult(true, buildString {
@@ -243,7 +243,7 @@ object RedTeamEngine {
         val r = RootShellExecutor.exec("cat /proc/$pid/maps 2>/dev/null | grep 'r..p' | " +
                 "awk '{split(\$1,a,\"-\"); print a[1], a[2]}' | " +
                 "while read s e; do " +
-                "dd if=/proc/$pid/mem bs=4096 skip=\$((16#$s/4096)) count=\$(((16#$e-16#$s)/4096)) 2>/dev/null; " +
+                "dd if=/proc/$pid/mem bs=4096 skip=\$((16#\$s/4096)) count=\$(((16#\$e-16#\$s)/4096)) 2>/dev/null; " +
                 "done | head -c ${maxMb * 1024 * 1024} > '${outFile.absolutePath}'")
         val size = if (outFile.exists()) outFile.length() else 0
         // 提取可读字符串
@@ -367,12 +367,12 @@ object RedTeamEngine {
         val r = RootShellExecutor.exec(cmd, (durationSec + 10) * 1000L)
         val size = if (outFile.exists()) outFile.length() else 0
         // 快速分析
-        val analysis = if (size > 0) RootShellExecutor.exec("tcpdump -r '${outFile.absolutePath}' -n 2>/dev/null | head -50") else ""
+        val analysis = if (size > 0) RootShellExecutor.exec("tcpdump -r '${outFile.absolutePath}' -n 2>/dev/null | head -50").out else ""
         return ToolResult(true, buildString {
             appendLine("=== 抓包完成 ===")
             appendLine("文件: ${outFile.absolutePath}")
             appendLine("大小: ${size / 1024} KB")
-            appendLine("前 50 个包:\n${analysis.out}")
+            appendLine("前 50 个包:\n$analysis")
         })
     }
 
