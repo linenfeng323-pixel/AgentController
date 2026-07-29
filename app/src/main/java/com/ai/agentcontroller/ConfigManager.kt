@@ -50,7 +50,10 @@ object ConfigManager {
         var reasonModelUrl: String = "",
         var contextSummary: Boolean = true,
         var backgroundReview: Boolean = false,
-        var mcpEnabled: Boolean = false
+        var mcpEnabled: Boolean = false,
+        var githubToken: String = "",
+        var githubRepo: String = "",
+        var githubBranch: String = "main"
     )
 
     @Volatile private var current: Config = Config()
@@ -148,6 +151,9 @@ object ConfigManager {
             put("contextSummary", cfg.contextSummary)
             put("backgroundReview", cfg.backgroundReview)
             put("mcpEnabled", cfg.mcpEnabled)
+            put("githubToken", cfg.githubToken)
+            put("githubRepo", cfg.githubRepo)
+            put("githubBranch", cfg.githubBranch)
         }
         f.writeText(o.toString(2))
     }
@@ -186,7 +192,10 @@ object ConfigManager {
             reasonModelUrl = o.optString("reasonModelUrl"),
             contextSummary = o.optBoolean("contextSummary", true),
             backgroundReview = o.optBoolean("backgroundReview", false),
-            mcpEnabled = o.optBoolean("mcpEnabled", false)
+            mcpEnabled = o.optBoolean("mcpEnabled", false),
+            githubToken = o.optString("githubToken"),
+            githubRepo = o.optString("githubRepo"),
+            githubBranch = o.optString("githubBranch", "main")
         )
     } catch (e: Throwable) {
         CommandLogManager.err("读取配置失败: ${e.message}")

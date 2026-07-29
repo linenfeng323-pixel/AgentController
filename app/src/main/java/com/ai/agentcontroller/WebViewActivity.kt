@@ -331,6 +331,48 @@ class WebViewActivity : AppCompatActivity() {
     private fun handleDirectCommand(text: String) {
         CommandLogManager.info("快捷指令: $text")
         val t = text.trim()
+
+        // ======= 阶段 1：用完整自然语言解析器先跑一遍 =======
+        val r = NaturalLanguageResolver.resolve(t)
+
+        // GitHub 操作
+        r.githubOp?.let { op ->
+            handleGithubOp(op)
+            return
+        }
+
+        // MCP 工具
+        if (r.mcpTool != null) {
+            Thread {
+                val res = McpServerExt.callTool(r.mcpTool, r.mcpArgs ?: org.json.JSONObject())
+                CommandLogManager.info("MCP 结果: ${res.toString().take(500)}")
+            }.start()
+            Toast.makeText(this, "MCP 工具：${r.mcpTool}", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // 计划任务
+        r.planText?.let { plan ->
+            val state = PlanEngine.parseFromText(plan)
+            if (state != null) {
+                Toast.makeText(this, "计划已创建：${state.tasks.size} 步", Toast.LENGTH_SHORT).show()
+                Thread {
+                    PlanEngine.execute(state.id) { st ->
+                        CommandLogManager.info("计划进度: ${(st.progress() * 100).toInt()}%")
+                    }
+                }.start()
+                return
+            }
+        }
+
+        // 直接指令列表
+        if (r.commands.isNotEmpty()) {
+            Toast.makeText(this, "执行 ${r.commands.size} 条指令", Toast.LENGTH_SHORT).show()
+            Thread { HybridExecutor.executeAll(r.commands) }.start()
+            return
+        }
+
+        // ======= 阶段 2：原有的快捷指令映射兜底 =======
         val cmd: AgentCommand? = when {
             t.matches(Regex("^打开(.+)$")) -> {
                 val app = t.replaceFirst("打开", "").trim()
@@ -368,11 +410,8 @@ class WebViewActivity : AppCompatActivity() {
             t.matches(Regex("^(长按|longpress)\\s*(.+)$", RegexOption.IGNORE_CASE)) -> {
                 val target = t.replaceFirst(Regex("^(长按|longpress)\\s*", RegexOption.IGNORE_CASE), "").trim()
                 val parts = target.split(",").map { it.trim().toFloatOrNull() ?: 0f }
-                if (parts.size >= 2) {
-                    AgentCommand(action = "long_press", x = parts[0], y = parts[1])
-                } else {
-                    AgentCommand(action = "long_press", target = target)
-                }
+                if (parts.size >= 2) AgentCommand(action = "long_press", x = parts[0], y = parts[1])
+                else AgentCommand(action = "long_press", target = target)
             }
             t.matches(Regex("^(向上滚动|上滑|scroll up)$", RegexOption.IGNORE_CASE)) -> AgentCommand(action = "scroll", direction = "up")
             t.matches(Regex("^(向下滚动|下滑|scroll down)$", RegexOption.IGNORE_CASE)) -> AgentCommand(action = "scroll", direction = "down")
@@ -392,11 +431,118 @@ class WebViewActivity : AppCompatActivity() {
         }.start()
     }
 
+    /** 在 AI 聊天框里触发 GitHub 自动编译 / 监控 / 自动修复 */
+    private fun handleGithubOp(op: String) {
+        val cfg = ConfigManager.get()
+        if (cfg.githubToken.isBlank()) {
+            Toast.makeText(this, "请先在设置页填入 GitHub Token", Toast.LENGTH_LONG).show()
+            return
+        }
+        Thread {
+            when (op) {
+                "trigger_build" -> {
+                    // 空提交触发 CI
+                    val r = RootShellExecutor.execBatch(listOf(
+                        "cd /storage/emulated/0/XINCODE/AgentController || cd ${filesDir.parent}/AgentController",
+                        "git add -A",
+                        "git -c user.email=agent@trae.cn -c user.name=TraeAgent commit --allow-empty -m 'trigger build'",
+                        "git push https://x-access-token:${shellEscape(cfg.githubToken)}@github.com/${cfg.githubRepo}.git ${cfg.githubBranch}"
+                    ))
+                    CommandLogManager.info(if (r.ok) "已触发构建" else "触发失败: ${r.err}")
+                }
+                "watch" -> {
+                    val runId = latestRunId(cfg.githubToken, cfg.githubRepo, cfg.githubBranch)
+                    if (runId != null) {
+                        CommandLogManager.info("监控 Run #$runId")
+                        val status = pollRun(cfg.githubToken, cfg.githubRepo, runId)
+                        CommandLogManager.info("Run #$runId 结果: $status")
+                    }
+                }
+                "auto_fix" -> {
+                    val ok = ContextSentinel.buildAndFixLoop(
+                        token = cfg.githubToken,
+                        repo = cfg.githubRepo,
+                        branch = cfg.githubBranch,
+                        commitMsg = "auto-fix: from device"
+                    ) { CommandLogManager.info(it) }
+                    CommandLogManager.info(if (ok) "✅ 自动修复成功" else "❌ 自动修复失败")
+                }
+                "push" -> {
+                    val r = RootShellExecutor.execBatch(listOf(
+                        "cd /storage/emulated/0/XINCODE/AgentController || cd ${filesDir.parent}/AgentController",
+                        "git add -A",
+                        "git -c user.email=agent@trae.cn -c user.name=TraeAgent commit -m 'device update' --allow-empty",
+                        "git push https://x-access-token:${shellEscape(cfg.githubToken)}@github.com/${cfg.githubRepo}.git ${cfg.githubBranch}"
+                    ))
+                    CommandLogManager.info(if (r.ok) "推送成功" else "推送失败: ${r.err}")
+                }
+            }
+        }.start()
+        Toast.makeText(this, "GitHub: $op", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun shellEscape(s: String): String = s.replace("'", "'\\''")
+
+    private fun latestRunId(token: String, repo: String, branch: String): Long? =
+        ghApiArr(token, "/repos/$repo/actions/runs?branch=$branch&per_page=3")?.let { arr ->
+            if (arr.length() > 0) arr.getJSONObject(0).optLong("id") else null
+        }
+
+    private fun pollRun(token: String, repo: String, runId: Long): String {
+        repeat(120) {
+            val o = ghApi(token, "/repos/$repo/actions/runs/$runId")
+            val status = o?.optString("status") ?: ""
+            if (status == "completed") return o.optString("conclusion", "unknown")
+            Thread.sleep(10_000)
+        }
+        return "timeout"
+    }
+
+    private fun ghApi(token: String, path: String): org.json.JSONObject? {
+        return runCatching {
+            val url = java.net.URL("https://api.github.com$path")
+            val c = (url.openConnection() as java.net.HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 15_000; readTimeout = 30_000
+                setRequestProperty("Authorization", "token $token")
+                setRequestProperty("Accept", "application/vnd.github+json")
+            }
+            val text = (if (c.responseCode in 200..299) c.inputStream else c.errorStream)?.bufferedReader()?.readText().orEmpty()
+            runCatching { org.json.JSONObject(text) }.getOrNull()
+        }.getOrNull()
+    }
+    private fun ghApiArr(token: String, path: String): org.json.JSONArray? {
+        return runCatching {
+            val url = java.net.URL("https://api.github.com$path")
+            val c = (url.openConnection() as java.net.HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 15_000; readTimeout = 30_000
+                setRequestProperty("Authorization", "token $token")
+                setRequestProperty("Accept", "application/vnd.github+json")
+            }
+            org.json.JSONArray(c.inputStream.bufferedReader().readText())
+        }.getOrNull()
+    }
+
     /** 处理 AI 回复：解析 + 可选自动执行。 */
     private fun handleAiReply(text: String) {
         if (text == lastReply) return
         lastReply = text
         CommandLogManager.info("AI 回复: ${text.take(200)}")
+        // 上下文哨兵
+        val st = ContextSentinel.check(text)
+        if (st.compressed) {
+            CommandLogManager.warn("上下文压缩检测：${if (st.needResendPrompt) "建议重发系统提示" else "已标记"}")
+        }
+        // 计划
+        val plan = PlanEngine.parseFromText(text)
+        if (plan != null && plan.tasks.size > 1) {
+            CommandLogManager.ok("创建计划: ${plan.tasks.size} 步")
+            Thread { PlanEngine.execute(plan.id) { p ->
+                CommandLogManager.info("计划进度: ${(p.progress() * 100).toInt()}%")
+            } }.start()
+            return
+        }
         val batch = CommandParser.parse(text)
         if (batch.commands.isEmpty()) {
             CommandLogManager.warn("回复未识别为指令")
