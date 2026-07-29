@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * 用于：AI 回复缓存、屏幕快照、坐标解算结果等“需要稳定且不丢”的场景。
  */
-class ResultCache<K, V>(
+class ResultCache<K : Any, V>(
     private val refreshMs: Long = 100L,
     private val keepMs: Long = 1500L,
     private val maxStaleMs: Long = 5000L,

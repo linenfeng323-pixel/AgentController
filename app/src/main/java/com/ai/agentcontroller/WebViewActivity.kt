@@ -342,17 +342,17 @@ class WebViewActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.dialog_log, null)
         val logText = view.findViewById<android.widget.TextView>(R.id.logText)
         val scroll = view.findViewById<android.widget.ScrollView>(R.id.logScroll)
-        CommandLogManager.observe { text ->
+        val cb: (String) -> Unit = { text ->
             handler.post {
                 logText.text = text
                 scroll.post { scroll.fullScroll(android.view.View.FOCUS_DOWN) }
             }
-        }.also { cb ->
-            AlertDialog.Builder(this)
-                .setView(view)
-                .setOnDismissListener { CommandLogManager.stopObserve(cb) }
-                .show()
         }
+        CommandLogManager.observe(cb)
+        AlertDialog.Builder(this)
+            .setView(view)
+            .setOnDismissListener { CommandLogManager.stopObserve(cb) }
+            .show()
         view.findViewById<android.widget.Button>(R.id.btnClearLog).setOnClickListener {
             CommandLogManager.clear()
         }

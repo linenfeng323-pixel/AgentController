@@ -1,6 +1,7 @@
 package com.ai.agentcontroller
 
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityService.GestureDescription
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context

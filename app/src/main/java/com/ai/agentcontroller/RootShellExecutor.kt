@@ -45,7 +45,7 @@ object RootShellExecutor {
             false
         }
         CommandLogManager.info("Root 权限: $hasRoot")
-        hasRoot
+        return hasRoot
     }
 
     data class Result(val exit: Int, val out: String, val err: String) {

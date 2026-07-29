@@ -36,9 +36,10 @@ object CommandLogManager {
         listeners.forEach { runCatching { it("") } }
     }
 
-    fun observe(cb: (String) -> Unit) {
+    fun observe(cb: (String) -> Unit): (String) -> Unit {
         listeners.add(cb)
         cb(sb.toString())
+        return cb
     }
 
     fun stopObserve(cb: (String) -> Unit) {

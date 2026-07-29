@@ -30,7 +30,7 @@ object RecordManager {
             return false
         }
         val safeName = if (name.isBlank()) "record_${System.currentTimeMillis()}" else name
-        val f = File(recordsDir, "$safeName.json")
+        val f = File(recordsDir(), "$safeName.json")
         recordingFile = f
         recordingStartTs = System.currentTimeMillis()
         lastCmdTs = recordingStartTs
@@ -73,11 +73,11 @@ object RecordManager {
         return f
     }
 
-    fun listRecords(): List<String> = recordsDir.listFiles()?.map { it.nameWithoutExtension }?.sorted() ?: emptyList()
+    fun listRecords(): List<String> = recordsDir().listFiles()?.map { it.nameWithoutExtension }?.sorted() ?: emptyList()
 
     /** 回放指定录制名。 */
     fun replay(name: String): Boolean {
-        val f = File(recordsDir, "$name.json")
+        val f = File(recordsDir(), "$name.json")
         if (!f.exists()) {
             CommandLogManager.warn("录制不存在: $name")
             return false
