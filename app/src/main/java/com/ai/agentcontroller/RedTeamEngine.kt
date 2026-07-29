@@ -555,8 +555,8 @@ object RedTeamEngine {
         // 内存搜索 "搜内存" / "搜索 xxx 进程的内存"
         if (text.contains("搜内存") || text.contains("内存搜索") || text.contains("memory search")) {
             val pidMatch = Regex("""pid[=:\s]*(\d+)""", RegexOption.IGNORE_CASE).find(input)?.groupValues?.get(1)?.toIntOrNull()
-            val pattern = Regex("""["""]([^""]+)["""]""").find(input)?.groupValues?.get(1)
-                ?: Regex("""搜[索]?([\w_]+)""").find(input)?.groupValues?.get(1) ?: "password"
+            val pattern = Regex("\"([^\"]+)\"").find(input)?.groupValues?.get(1)
+                ?: Regex("搜[索]?([\\w_]+)").find(input)?.groupValues?.get(1) ?: "password"
             if (pidMatch != null) {
                 results.add("→ 内存搜索 PID=$pidMatch pattern='$pattern'")
                 results.add(searchMemory(pidMatch, pattern).text)
