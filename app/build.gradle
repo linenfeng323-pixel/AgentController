@@ -11,8 +11,8 @@ android {
         applicationId "com.ai.agentcontroller"
         minSdk 24
         targetSdk 32
-        versionCode 2436
-        versionName "2.4.36"
+        versionCode 100
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 

@@ -3,38 +3,40 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>AgentToolbox MCP · v2.4.36</title>
+<title>RedTeam AI · 红队智能体</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,Segoe UI,Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:#0b1020;color:#e6e8ef}
-header{padding:18px 22px;background:linear-gradient(90deg,#1a2250,#0b1020);border-bottom:1px solid #1f2a5a}
-h1{margin:0;font-size:18px;color:#fff}h1 small{color:#8ea4ff;margin-left:8px;font-weight:400}
-.grid{display:grid;grid-template-columns:360px 1fr;min-height:calc(100vh - 70px)}
-.left{border-right:1px solid #1b2350;padding:16px;overflow:auto;max-height:calc(100vh - 70px)}
-.right{padding:16px;display:flex;flex-direction:column}
-.card{background:#121a3a;border:1px solid #1f2a5a;border-radius:14px;padding:14px;margin-bottom:14px}
-h2{margin:0 0 10px 0;font-size:14px;color:#c6d3ff}
-.tag{display:inline-block;padding:2px 8px;font-size:12px;border-radius:10px;background:#23317a;color:#cfd9ff;margin:2px 4px 2px 0}
-.tool{padding:8px 10px;border-radius:10px;background:#0f1640;margin-bottom:6px;cursor:pointer;border:1px solid transparent;transition:.15s}
-.tool:hover{border-color:#3b4fb5;background:#162157}
-.tool b{color:#f5f7ff;font-size:13px}.tool span{color:#8ca2e6;font-size:12px;display:block;margin-top:2px}
-.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;margin-right:6px;background:#24317a;color:#e4e9ff}
-.pill.ok{background:#0f5a3a;color:#c6f6d9}.pill.no{background:#6b1f32;color:#ffcdd8}
-input[type=text],textarea,select{width:100%;padding:10px 12px;border-radius:10px;background:#0f1740;color:#eef;border:1px solid #2c3a82;outline:none;font-size:13px}
-textarea{min-height:120px;font-family:ui-monospace,Menlo,Consolas,monospace}
-button{background:linear-gradient(135deg,#3c5bff,#6685ff);border:0;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600;margin-right:6px;font-size:13px}
-button.ghost{background:#1e2868;color:#dbe0ff}button.small{padding:6px 10px;font-size:12px}
-.row{display:flex;gap:8px;margin-bottom:8px}.wrap{word-break:break-word}
-.out{margin-top:10px;padding:12px;border-radius:10px;background:#070b26;border:1px solid #1a224e;max-height:55vh;overflow:auto;font-size:13px;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace}
-.k{color:#9ec1ff}.str{color:#a8e6a1}.num{color:#ffd08a}.err{color:#ff9ba9}.ok{color:#89f3c3}
-.events{flex:1;min-height:280px;overflow:auto;padding:12px;border-radius:10px;background:#070b26;border:1px solid #1a224e;white-space:pre-wrap;font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace}
-.evt{padding:4px 0;border-bottom:1px dashed #1a224e}.evt b{color:#9ec1ff}
-/* KaTeX 样式简化版（无字体文件 fallback） */
-.katex{font-size:1.1em}.katex-display{overflow-x:auto;overflow-y:hidden;padding:4px 0}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,Segoe UI,Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:#0a0e1a;color:#e6e8ef}
+header{padding:16px 22px;background:linear-gradient(90deg,#1a0a2e,#0a0e1a);border-bottom:1px solid #2a1a4a}
+h1{margin:0;font-size:20px;color:#ff4466}h1 small{color:#8866aa;margin-left:8px;font-weight:400}
+.grid{display:grid;grid-template-columns:340px 1fr;min-height:calc(100vh - 64px)}
+.left{border-right:1px solid #1a1a3a;padding:14px;overflow:auto;max-height:calc(100vh - 64px)}
+.right{padding:14px;display:flex;flex-direction:column;gap:12px}
+.card{background:#0f1428;border:1px solid #1e2448;border-radius:12px;padding:14px;margin-bottom:12px}
+h2{margin:0 0 8px 0;font-size:14px;color:#ff6688}
+.tag{display:inline-block;padding:2px 8px;font-size:11px;border-radius:8px;background:#2a1040;color:#ff99aa;margin:2px 4px 2px 0}
+.tool{padding:8px 10px;border-radius:8px;background:#0a0f20;margin-bottom:5px;cursor:pointer;border:1px solid transparent;transition:.15s}
+.tool:hover{border-color:#6a2a4a;background:#150a20}
+.tool b{color:#ff4466;font-size:12px}.tool span{color:#7a8aaa;font-size:11px;display:block;margin-top:2px}
+.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;margin-right:5px;background:#1a1a3a;color:#aabbdd}
+.pill.ok{background:#0a3a2a;color:#66ff99}.pill.no{background:#3a0a1a;color:#ff6688}
+input[type=text],textarea,select{width:100%;padding:10px 12px;border-radius:8px;background:#0a0f20;color:#eef;border:1px solid #2a2a5a;outline:none;font-size:13px}
+textarea{min-height:100px;font-family:ui-monospace,Menlo,Consolas,monospace}
+button{background:linear-gradient(135deg,#cc2255,#ff4466);border:0;color:#fff;padding:9px 14px;border-radius:8px;cursor:pointer;font-weight:600;margin-right:6px;font-size:13px}
+button.ghost{background:#1a1a3a;color:#aabbdd}button.small{padding:6px 10px;font-size:12px}
+.row{display:flex;gap:8px;margin-bottom:8px}
+.chat{flex:1;min-height:300px;overflow:auto;padding:14px;border-radius:10px;background:#060810;border:1px solid #1a1a3a;font-size:13px}
+.msg{padding:8px 12px;margin-bottom:8px;border-radius:8px;white-space:pre-wrap;word-break:break-word}
+.msg.user{background:#0a1a3a;border-left:3px solid #4488ff}
+.msg.commander{background:#1a0a2a;border-left:3px solid #aa44ff}
+.msg.executor{background:#0a2a1a;border-left:3px solid #44ff88}
+.msg.system{background:#2a2a0a;border-left:3px solid #ffaa44}
+.msg b{font-size:11px;color:#888;display:block;margin-bottom:4px}
+.events{max-height:200px;overflow:auto;padding:10px;border-radius:8px;background:#060810;border:1px solid #1a1a3a;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace}
 </style>
 </head>
 <body>
 <header>
-<h1>AgentToolbox MCP Server <small>v2.4.36 · 40+ 工具 · Python3.14 · Git 三层回退</small></h1>
+<h1>RedTeam AI <small>红队智能体 · AI与AI对话 · 逆向/渗透/漏洞分析</small></h1>
 </header>
 <div class="grid">
   <aside class="left">
@@ -43,240 +45,179 @@ button.ghost{background:#1e2868;color:#dbe0ff}button.small{padding:6px 10px;font
       <div>
         <span id="srv" class="pill no">未连接</span>
         <span class="pill">PORT <b>8080</b></span>
-        <span class="pill">PROTO <b>JSON-RPC 2.0</b></span>
+        <span class="pill">JSON-RPC 2.0</span>
       </div>
-      <div style="margin-top:10px">
-        <button class="ghost small" onclick="connectMcp()">连接 MCP</button>
-        <button class="ghost small" onclick="connectSse()">监听 SSE</button>
-        <button class="ghost small" onclick="reloadSkills()">skills/reload</button>
-      </div>
-      <div style="margin-top:10px;font-size:12px;color:#91a8ea">
-        系统 Git: <b id="sg">检测中…</b><br/>
-        内嵌 Git: <b id="eg">检测中…</b><br/>
-        Python: <b id="py">检测中…</b>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>自定义调用</h2>
-      <div class="row">
-        <select id="tool" onchange="fillExample()"></select>
-      </div>
-      <textarea id="args" placeholder='{"code":"print(1+2)"}'></textarea>
       <div style="margin-top:8px">
-        <button onclick="callTool()">tools/call</button>
-        <button class="ghost" onclick="listTools()">tools/list</button>
-        <button class="ghost" onclick="listSkills()">skills/list</button>
+        <button class="ghost small" onclick="connectMcp()">连接</button>
+        <button class="ghost small" onclick="connectSse()">SSE</button>
       </div>
-      <div id="out" class="out"></div>
     </div>
 
     <div class="card">
-      <h2>40+ 内置工具</h2>
+      <h2>AI 对话（大白话指挥）</h2>
+      <textarea id="userInput" placeholder="用大白话输入你的需求，比如：&#10;帮我逆向分析 /sdcard/app.apk 看看有没有漏洞&#10;扫描局域网看看有哪些主机和开放端口&#10;检查当前设备的 root 提权可能性"></textarea>
+      <div style="margin-top:8px">
+        <button onclick="startDialogue()">发送给指挥AI</button>
+        <button class="ghost" onclick="clearDialogue()">清空</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>直接调用工具</h2>
+      <select id="tool" onchange="fillExample()"></select>
+      <textarea id="args" placeholder='{"path":"/sdcard/app.apk"}'></textarea>
+      <div style="margin-top:6px">
+        <button onclick="callTool()">执行</button>
+        <button class="ghost" onclick="listTools()">列出全部</button>
+      </div>
+      <div id="out" style="margin-top:8px;padding:10px;border-radius:8px;background:#060810;border:1px solid #1a1a3a;font-size:12px;max-height:200px;overflow:auto;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace"></div>
+    </div>
+
+    <div class="card">
+      <h2>红队工具 (18+)</h2>
       <div id="tools"></div>
     </div>
   </aside>
 
   <main class="right">
-    <div class="card">
-      <h2>SSE 事件流 <span class="pill ok" id="ssePill" style="float:right">OFF</span></h2>
-      <div id="events" class="events"><span style="color:#6d7cb3">点击「监听 SSE」开始接收 started/chunk/status/done/plan/error/context_compressed 事件…</span></div>
+    <div class="card" style="flex:1;display:flex;flex-direction:column">
+      <h2>AI 对话记录 <span class="pill" id="stepPill" style="float:right">STEP 0</span></h2>
+      <div id="chat" class="chat"><div class="msg system"><b>系统</b>在左侧输入你的需求，指挥AI会拆解任务并指挥执行AI调用工具完成操作。</div></div>
     </div>
     <div class="card">
-      <h2>系统提示词（粘贴到 DeepSeek / 豆包）</h2>
-      <textarea id="prompt" readonly></textarea>
+      <h2>SSE 事件流</h2>
+      <div id="events" class="events">点击「SSE」开始监听事件...</div>
     </div>
   </main>
 </div>
 
 <script>
-/* ================= marked 迷你版（本地无 CDN，仅作最小 markdown 渲染 + 代码高亮颜色） ================= */
-function miniMarked(src){
-  return src
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/^### (.*)$/gm,'<h3 style="color:#dfe6ff;margin:10px 0 4px">$1</h3>')
-    .replace(/^## (.*)$/gm,'<h2 style="color:#eef2ff;margin:12px 0 6px">$1</h2>')
-    .replace(/^# (.*)$/gm,'<h1 style="color:#fff;margin:14px 0 8px">$1</h1>')
-    .replace(/`{3}(\w+)?\n([\s\S]*?)`{3}/g,(m,l,c)=>`<pre style="background:#05081f;border:1px solid #1f2a5a;border-radius:8px;padding:10px;overflow:auto"><code style="color:#c6d3ff">${c.trim()}</code></pre>`)
-    .replace(/`([^`]+)`/g,'<code style="background:#0f1740;border:1px solid #23317a;padding:1px 5px;border-radius:6px;color:#ffd08a">$1</code>')
-    .replace(/\*\*(.*?)\*\*/g,'<b style="color:#fff">$1</b>')
-    .replace(/^\s*[-*+] (.*)$/gm,'<li style="margin-left:16px">$1</li>')
-    .replace(/^\s*(\d+)\. (.*)$/gm,'<li style="margin-left:16px;list-style:decimal">$2</li>')
-    .replace(/\n\n/g,'<br/><br/>').replace(/\n/g,'<br/>')
-    /* 简易 KaTeX 行内/块公式 占位：避免不显示异常（留空即可，实际可替换为真正的 KaTeX） */
-    .replace(/\$\$([\s\S]*?)\$\$/g,'<div class="katex-display"><span style="color:#a8e6a1">$$$1$$</span></div>')
-    .replace(/\$([^\n$]+?)\$/g,'<span style="color:#a8e6a1;font-family:serif">$$$1$$</span>');
-}
-
-/* ================= MCP 工具定义（展示用） ================= */
 const TOOLS = [
-  {n:"python",d:"执行 Python 代码（内嵌 Python 3.14）",args:`{"code":"print(1+2)"}`},
-  {n:"shell",d:"在 Android user/root shell 执行命令",args:`{"command":"ls -la /sdcard","root":true}`},
-  {n:"sh",d:"sh 命令执行",args:`{"c":"uptime"}`},
-  {n:"cmd",d:"cmd 命令执行",args:`{"c":"whoami"}`},
-  {n:"file_read",d:"读取手机文件",args:`{"path":"/sdcard/Download/a.txt"}`},
-  {n:"file_write",d:"写入手机文件",args:`{"path":"/sdcard/Download/a.txt","content":"hi"}`},
-  {n:"file_list",d:"列出目录",args:`{"path":"/sdcard"}`},
-  {n:"file_search",d:"搜索文件",args:`{"path":"/sdcard","pattern":"*.apk"}`},
-  {n:"ask",d:"向用户询问",args:`{"question":"你确定要执行吗？"}`},
-  {n:"http_request",d:"发起 HTTP 请求",args:`{"method":"GET","url":"https://api.github.com","body":"","headers":{}}`},
-  {n:"web",d:"打开网页（WebView 操作）",args:`{"url":"https://www.example.com"}`},
-  {n:"math_calculator",d:"安全数学计算器",args:`{"expression":"(1+2)*3-4"}`},
-  {n:"lua",d:"执行 Lua 脚本（GameGuardian API 兼容）",args:`{"script":"print('hi')"}`},
-  {n:"gm_root_status",d:"GM：当前 root 状态"},
-  {n:"gm_process_list",d:"GM：进程列表"},
-  {n:"gm_attach_process",d:"GM：附加到进程"},
-  {n:"gm_memory_search",d:"GM：内存搜索"},
-  {n:"gm_memory_read",d:"GM：读内存"},
-  {n:"gm_memory_write",d:"GM：写内存"},
-  {n:"gm_memory_freeze",d:"GM：冻结内存数值"},
-  {n:"gm_aob_search",d:"GM：字节特征码搜索"},
-  {n:"skill_read",d:"读取指定技能",args:`{"name":"代码审查"}`},
-  {n:"skills/list",d:"列出已加载技能摘要"},
-  {n:"skills/reload",d:"热加载 skills 目录下所有技能"},
-  {n:"open_app",d:"root/无障碍打开应用",args:`{"app":"微信"}`},
-  {n:"click",d:"点击文字或坐标",args:`{"target":"搜索"}`},
-  {n:"input_text",d:"输入文本",args:`{"text":"你好"}`},
-  {n:"screenshot",d:"截屏并返回路径"},
-  {n:"set_volume",d:"设置音量 0..15",args:`{"value":10}`},
-  {n:"set_wifi",d:"开关 WiFi",args:`{"on":true}`},
-  {n:"get_device_info",d:"获取设备信息"},
+  {n:"apk_decompile",d:"反编译 APK",args:`{"path":"/sdcard/app.apk"}`},
+  {n:"apk_manifest",d:"Manifest 安全分析",args:`{"path":"/sdcard/app.apk"}`},
+  {n:"apk_strings",d:"提取 URL/IP/密钥",args:`{"path":"/sdcard/app.apk"}`},
+  {n:"net_scan",d:"端口扫描",args:`{"target":"192.168.1.1","ports":"1-1000"}`},
+  {n:"net_hosts",d:"局域网主机发现",args:`{"subnet":"192.168.1"}`},
+  {n:"net_wifi",d:"WiFi 信息",args:`{}`},
+  {n:"net_dns",d:"DNS 解析",args:`{"domain":"example.com"}`},
+  {n:"net_capture",d:"抓包",args:`{"interface":"wlan0","duration":30,"filter":""}`},
+  {n:"mem_procs",d:"枚举进程",args:`{"filter":""}`},
+  {n:"mem_search",d:"内存搜索",args:`{"pid":1234,"pattern":"password"}`},
+  {n:"mem_dump",d:"内存转储",args:`{"pid":1234,"max_mb":50}`},
+  {n:"bin_elf",d:"ELF 分析",args:`{"path":"/system/bin/ls"}`},
+  {n:"bin_dex",d:"DEX 分析",args:`{"path":"/sdcard/classes.dex"}`},
+  {n:"vuln_privesc",d:"权限提升检测",args:`{}`},
+  {n:"vuln_audit",d:"安全审计",args:`{}`},
+  {n:"shell",d:"root shell",args:`{"command":"id && whoami","root":true}`},
+  {n:"file_read",d:"读文件",args:`{"path":"/sdcard/test.txt"}`},
+  {n:"file_search",d:"搜文件",args:`{"path":"/sdcard","pattern":"*.apk"}`},
+  {n:"ai_dialogue_start",d:"启动AI对话",args:`{"input":"帮我检查设备安全"}`},
+  {n:"ai_commander_reply",d:"指挥AI回复",args:`{"reply":"{\\"task\\":\\"检查设备\\",\\"tool\\":\\"vuln_audit\\",\\"args\\":{}}"}`},
+  {n:"ai_executor_reply",d:"执行AI回复",args:`{"reply":"{\\"action\\":\\"call_tool\\",\\"tool\\":\\"vuln_audit\\",\\"args\\":{}}"}`},
+  {n:"ai_dialogue_history",d:"对话历史",args:`{}`},
 ];
-// mt_apk_* 占位
-for(const n of ["mt_apk_analyze","mt_apk_list_res","mt_apk_read_res","mt_apk_write_res",
-  "mt_apk_list_smali","mt_apk_read_smali","mt_apk_write_smali","mt_apk_list_assets","mt_apk_read_asset",
-  "mt_apk_repack","mt_apk_sign","mt_apk_install","mt_apk_export","mt_apk_modify_manifest",
-  "mt_apk_remove_sign","mt_apk_alignment","mt_apk_dex_count","mt_apk_res_dump"])
-  TOOLS.push({n,d:"MT 管理器 APK MCP 工具（运行时连接 MT 管理器后生效）",args:`{"path":"/sdcard/a.apk"}`});
-
-const toolsDiv = document.getElementById("tools");
-const toolSel = document.getElementById("tool");
+const toolsDiv=document.getElementById("tools");
+const toolSel=document.getElementById("tool");
 TOOLS.forEach(t=>{
-  const d = document.createElement("div");
-  d.className="tool"; d.innerHTML = `<b>${t.n}</b><span>${t.d||''}</span>`;
-  d.onclick = () => { toolSel.value = t.n; document.getElementById("args").value = t.args||'{}'; };
+  const d=document.createElement("div");d.className="tool";
+  d.innerHTML=`<b>${t.n}</b><span>${t.d}</span>`;
+  d.onclick=()=>{toolSel.value=t.n;document.getElementById("args").value=t.args||'{}';};
   toolsDiv.appendChild(d);
-  const o = document.createElement("option"); o.value = t.n; o.textContent = t.n; toolSel.appendChild(o);
+  const o=document.createElement("option");o.value=t.n;o.textContent=t.n;toolSel.appendChild(o);
 });
-function fillExample(){ const t = TOOLS.find(x=>x.n===document.getElementById('tool').value); if(t)document.getElementById('args').value=t.args||'{}'; }
+function fillExample(){const t=TOOLS.find(x=>x.n===document.getElementById('tool').value);if(t)document.getElementById('args').value=t.args||'{}';}
 
-/* ================= MCP JSON-RPC 2.0 客户端 ================= */
-const BASE = location.origin.replace(/\/$/,'');
-let rpcId = 0;
-async function rpc(method, params){
-  const id = ++rpcId;
-  const body = JSON.stringify({jsonrpc:"2.0",method,params,id});
-  const r = await fetch(BASE+"/mcp",{method:"POST",headers:{"Content-Type":"application/json"},body});
+const BASE=location.origin;
+let rpcId=0;
+async function rpc(method,params){
+  const id=++rpcId;
+  const body=JSON.stringify({jsonrpc:"2.0",method,params,id});
+  const r=await fetch(BASE+"/mcp",{method:"POST",headers:{"Content-Type":"application/json"},body});
   return await r.json();
 }
-
-function statusOk(html){document.getElementById('srv').className='pill ok';document.getElementById('srv').innerHTML=html;}
-function statusNo(html){document.getElementById('srv').className='pill no';document.getElementById('srv').innerHTML=html;}
+function outln(txt,cls){const d=document.createElement('div');d.className=cls||'';d.textContent=typeof txt==='string'?txt:JSON.stringify(txt,null,2);const out=document.getElementById('out');out.appendChild(d);out.scrollTop=out.scrollHeight;}
 
 async function connectMcp(){
   try{
-    const h = await fetch(BASE+"/health").then(r=>r.json());
-    statusOk('已连接 · '+h.version);
-    const init = await rpc("initialize",{protocolVersion:"2024-11-05",capabilities:{},clientInfo:{name:"test_client",version:"1.0"}});
-    if(init.error) throw new Error(init.error.message||"init failed");
-    await fetch(BASE+"/mcp",{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({jsonrpc:"2.0",method:"notifications/initialized"})});
-    outln(JSON.stringify(init,null,2),'k');
-  }catch(e){ statusNo('连接失败'); outln('× '+e.message,'err'); }
+    const h=await fetch(BASE+"/health").then(r=>r.json());
+    document.getElementById('srv').className='pill ok';document.getElementById('srv').textContent='已连接 '+h.version;
+    await rpc("initialize",{protocolVersion:"2024-11-05",capabilities:{},clientInfo:{name:"redteam",version:"1.0"}});
+    outln("连接成功","ok");
+  }catch(e){document.getElementById('srv').className='pill no';document.getElementById('srv').textContent='连接失败';outln('× '+e.message,"err");}
 }
-
-async function listTools(){
-  const r = await rpc("tools/list",{}); renderOut(r);
-}
-async function listSkills(){
-  const r = await rpc("skills/list",{}); renderOut(r);
-}
-async function reloadSkills(){
-  const r = await rpc("skills/reload",{}); renderOut(r);
-}
+async function listTools(){const r=await rpc("tools/list",{});outln(r.result||r);}
 async function callTool(){
-  const name = document.getElementById('tool').value;
-  let args = {};
-  try{ args = JSON.parse(document.getElementById('args').value||'{}'); }catch(e){outln('参数 JSON 错误: '+e.message,'err');return}
-  const r = await rpc("tools/call",{name,arguments:args});
-  renderOut(r);
-}
-function renderOut(r){
-  const div = document.getElementById('out');
-  if(r.error) outln('× '+JSON.stringify(r.error),'err');
-  else outln(JSON.stringify(r.result||r,null,2),'ok');
-}
-function outln(txt,cls){
-  const d = document.createElement('div'); d.className = cls||'';
-  d.innerHTML = miniMarked(typeof txt==='string'?txt:JSON.stringify(txt,null,2));
-  const out = document.getElementById('out'); out.appendChild(d); out.scrollTop = out.scrollHeight;
+  const name=document.getElementById('tool').value;
+  let args={};try{args=JSON.parse(document.getElementById('args').value||'{}');}catch(e){outln('参数JSON错误: '+e.message,"err");return;}
+  const r=await rpc("tools/call",{name,arguments:args});
+  if(r.error)outln('× '+JSON.stringify(r.error),"err");
+  else outln(r.result?.content?.[0]?.text||JSON.stringify(r.result,null,2),"ok");
+  // 如果是AI对话工具，更新聊天窗口
+  if(name.startsWith("ai_"))updateChatFromResult(r.result);
 }
 
-/* ================= SSE 监听 ================= */
-let sse = null;
+// ===== AI 对话 =====
+async function startDialogue(){
+  const input=document.getElementById('userInput').value.trim();
+  if(!input){outln("请输入需求","err");return;}
+  addChat("user","用户",input);
+  addChat("commander","指挥AI","收到需求，正在分析...");
+  const r=await rpc("tools/call",{name:"ai_dialogue_start",arguments:{input}});
+  updateChatFromResult(r.result);
+}
+function updateChatFromResult(result){
+  if(!result||!result.content)return;
+  const text=result.content[0]?.text||"";
+  try{
+    const o=JSON.parse(text);
+    if(o.status==="executor_turn"){
+      addChat("executor","执行AI","收到 "+(o.tasks?.length||0)+" 个任务，正在执行...");
+      document.getElementById('stepPill').textContent="STEP "+o.step;
+    }else if(o.status==="commander_turn"){
+      if(o.toolResults)o.toolResults.forEach(tr=>{
+        addChat("executor","执行AI","工具 "+tr.tool+" 执行"+(tr.ok?"成功":"失败")+"\n"+(tr.result||"").slice(0,500));
+      });
+      addChat("commander","指挥AI","审查结果中...");
+      document.getElementById('stepPill').textContent="STEP "+o.step;
+    }else if(o.status==="done"){
+      addChat("system","系统","✅ 任务完成\n"+(o.summary||""));
+    }else if(o.dialogue){
+      addChat("system","系统",o.dialogue.slice(0,2000));
+    }
+  }catch(e){
+    // 非JSON，直接显示
+    if(text.length>0&&text.length<2000)addChat("executor","结果",text);
+  }
+}
+function addChat(cls,sender,text){
+  const chat=document.getElementById('chat');
+  const d=document.createElement('div');d.className="msg "+cls;
+  d.innerHTML="<b>"+sender+"</b>"+text.replace(/</g,'&lt;');
+  chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
+}
+function clearDialogue(){
+  document.getElementById('chat').innerHTML='<div class="msg system"><b>系统</b>对话已清空。</div>';
+  rpc("tools/call",{name:"ai_dialogue_start",arguments:{input:"__clear__"}}).catch(()=>{});
+}
+
+// ===== SSE =====
+let sse=null;
 function connectSse(){
-  if(sse){sse.close();sse=null;document.getElementById('ssePill').textContent='OFF';document.getElementById('ssePill').className='pill no';return;}
-  sse = new EventSource(BASE+'/sse');
-  sse.onopen=()=>{document.getElementById('ssePill').textContent='ON';document.getElementById('ssePill').className='pill ok';
-    addEvt('started','SSE 通道已连接');};
-  sse.onerror=()=>{document.getElementById('ssePill').textContent='ERR';document.getElementById('ssePill').className='pill no';};
+  if(sse){sse.close();sse=null;return;}
+  sse=new EventSource(BASE+'/sse');
+  sse.onopen=()=>addEvt("SSE 已连接");
   ['started','chunk','status','done','plan','error','context_compressed'].forEach(ev=>{
-    sse.addEventListener(ev, e=>addEvt(ev, e.data));
+    sse.addEventListener(ev,e=>addEvt(ev+": "+e.data.slice(0,200)));
   });
 }
-function addEvt(kind,data){
-  const box = document.getElementById('events');
-  const d = document.createElement('div'); d.className='evt';
-  try{const j=JSON.parse(data); d.innerHTML='<b>'+kind+'</b>\n'+JSON.stringify(j,null,2);}catch(_){d.innerHTML='<b>'+kind+'</b> '+data;}
-  if(box.firstChild && box.firstChild.style && box.firstChild.style && box.firstChild.style.color) box.innerHTML='';
-  box.appendChild(d); box.scrollTop = box.scrollHeight;
+function addEvt(text){
+  const box=document.getElementById('events');
+  const d=document.createElement('div');d.textContent=text;
+  box.appendChild(d);box.scrollTop=box.scrollHeight;
 }
 
-/* ================= 环境探测 ================= */
-(async function probe(){
-  try{await connectMcp();}catch(_){}
-  try{
-    const r1 = await rpc("tools/call",{name:"shell",arguments:{command:"which git && git --version",root:false}});
-    document.getElementById('sg').textContent = (r1.result && r1.result.content && r1.result.content[0] && r1.result.content[0].text||'无').toString().trim().slice(0,40);
-    const r2 = await rpc("tools/call",{name:"shell",arguments:{command:"ls -la /data/local/tmp/git && /data/local/tmp/git --version 2>&1 || echo NO_EMBED",root:false}});
-    document.getElementById('eg').textContent = (r2.result?.content?.[0]?.text||'').toString().trim().slice(0,40)||'未嵌入';
-    const r3 = await rpc("tools/call",{name:"shell",arguments:{command:"which python3 && python3 --version 2>&1 || which python && python --version 2>&1 || echo NO_PY",root:false}});
-    document.getElementById('py').textContent = (r3.result?.content?.[0]?.text||'').toString().trim().slice(0,40)||'未安装';
-  }catch(e){console.error(e)}
-})();
-
-/* ================= 系统提示词（供 AI 粘贴使用） ================= */
-const PROMPT = `# 角色
-你是一个运行在 Android 手机本地的 AI 智能体主控（Agent Toolbox v2.4.36）。你拥有本地 MCP 服务端暴露的全部工具权限，请按用户要求完成任务：能用工具就用工具，不要瞎猜。
-
-# 工具协议 · JSON-RPC 2.0 over HTTP
-- 初始化（必须第一条）：POST /mcp → {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","clientInfo":{"name":"llm","version":"1"}}}
-- 握手完成后通知：{"jsonrpc":"2.0","method":"notifications/initialized"}
-- 列工具：{"method":"tools/list"}
-- 调工具：{"method":"tools/call","params":{"name":"<NAME>","arguments":{...}}}
-- 列技能：{"method":"skills/list"}  热加载技能：{"method":"skills/reload"}
-
-# 内置 40+ 工具
-执行 & 文件：python / shell / sh / cmd / file_read / file_write / file_list / file_search
-交互 & 网络：ask / http_request / web
-计算 & 脚本：math_calculator / lua
-GM 内存修改：gm_root_status / gm_process_list / gm_attach_process / gm_memory_search / gm_memory_read / gm_memory_write / gm_memory_freeze / gm_aob_search
-Skill & MT 管理器：skill_read / skills/list / skills/reload / mt_apk_analyze / mt_apk_list_res / mt_apk_read_res / mt_apk_write_res / mt_apk_list_smali / mt_apk_read_smali / mt_apk_write_smali / mt_apk_list_assets / mt_apk_read_asset / mt_apk_repack / mt_apk_sign / mt_apk_install / mt_apk_export / mt_apk_modify_manifest / mt_apk_remove_sign / mt_apk_alignment / mt_apk_dex_count / mt_apk_res_dump
-设备 & 控制：open_app / click / input_text / screenshot / set_volume / set_wifi / get_device_info
-
-# 计划任务（如果需要多步）
-当用户的需求需要多步骤时，请在第一次回复末尾用 JSON 输出：
-{"tasks":[{"id":"t1","action":"open_app","target":"微信","priority":1},{"id":"t2","action":"auto","text":"点击“通讯录”","depends":["t1"]}]}
-- MCP 服务端会自动解析成 plan，SSE 推送 plan_update 事件；每步失败重试 3 次。
-
-# SSE 事件流 · GET /sse
-事件类型：started / chunk / status / done / plan / error / context_compressed
-上下文被压缩时，服务端会发 context_compressed 事件，此时请你重新输出完整系统提示词。
-
-# 回复格式（最重要）
-请直接调用工具，若工具执行后结果满足用户需求，直接用自然语言总结；若需执行多个工具，请按 JSON-RPC 2.0 顺序输出。
-`;
-document.getElementById('prompt').value = PROMPT;
+// 自动连接
+(async()=>{try{await connectMcp();}catch(_){}})();
 </script>
 </body>
 </html>

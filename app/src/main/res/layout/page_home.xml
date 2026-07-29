@@ -90,7 +90,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="端口 8080 · JSON-RPC 2.0 · 40+ 工具 · SSE 流 · Python 3.14 · Git 三层回退"
+            android:text="端口 8080 · JSON-RPC 2.0 · 18+ 红队工具 · AI与AI对话 · Root权限 · SSE流"
             android:textColor="@color/text_sub"
             android:textSize="12sp" />
 
@@ -148,7 +148,7 @@
                 android:layout_marginEnd="6dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_card_alt"
-                android:text="DeepSeek 助手"
+                android:text="AI 对话"
                 android:textColor="@color/text_main" />
 
             <Button
@@ -158,7 +158,7 @@
                 android:layout_height="40dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_card_alt"
-                android:text="连接 MT 管理器"
+                android:text="Root 检测"
                 android:textColor="@color/text_main" />
         </LinearLayout>
     </LinearLayout>

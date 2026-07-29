@@ -121,17 +121,16 @@ class MainActivity : AppCompatActivity() {
         }
         v.findViewById<View>(R.id.btnOpenToolbox)?.setOnClickListener {
             if (!McpServerV2.isRunning()) { McpServerV2.start(); McpServerExt.start(); refreshMcp() }
-            WebViewActivity.launch(this, "MCP 工具箱", "http://localhost:${McpServerV2.PORT}/", false)
+            WebViewActivity.launch(this, "RedTeam AI 工具箱", "http://localhost:${McpServerV2.PORT}/", false)
         }
         v.findViewById<View>(R.id.btnOpenDeepSeek)?.setOnClickListener {
+            // 打开 AI 对话页面（红队模式：DeepSeek / 豆包等）
             val ds = AiSiteResolver.resolve("deepseek")
-            WebViewActivity.launch(this, "DeepSeek 助手", ds.second, ConfigManager.get().autoExecute)
+            WebViewActivity.launch(this, "AI 对话（红队模式）", ds.second, ConfigManager.get().autoExecute)
         }
         v.findViewById<View>(R.id.btnConnectMt)?.setOnClickListener {
-            // 尝试拉起 MT 管理器，再调 skill reload
-            AppLauncher.launch("MT管理器")
-            McpServerV2.reloadSkillDirectory()
-            toast("尝试拉起 MT 管理器，APK MCP 工具需 MT 侧启动 APK MCP 后即可调用")
+            RootShellExecutor.checkRoot()
+            toast("Root: ${RootShellExecutor.hasRoot} | 红队工具就绪，${RedTeamEngine.tools.size} 个工具可用")
         }
         refreshMcp()
         // 首次进入若设置开启，则自动起 MCP

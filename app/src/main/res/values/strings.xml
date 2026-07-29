@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AI 操控盒子</string>
+    <string name="app_name">RedTeam AI</string>
     <string name="accessibility_service_desc">AI 操控盒子无障碍服务，用于让 AI 代替你点击、滑动、输入、打开应用等操作。请保持开启。</string>
 
     <string name="hint_search">输入 AI 名称或网址，例如：豆包、doubao、chatgpt</string>

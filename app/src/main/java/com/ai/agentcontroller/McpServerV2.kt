@@ -53,50 +53,37 @@ object McpServerV2 {
     private val promptCache = ConcurrentHashMap<String, String>()
     fun getPrompt(name: String, build: () -> String): String = promptCache.getOrPut(name, build)
 
-    /** 40+ 工具定义（调用时动态生成，避免反射） */
+    /** 红队工具定义（18 个核心工具） */
     private val toolRegistry: List<ToolDef> = buildList {
-        // 执行 & 文件
-        add(ToolDef("python", "执行 Python 代码（内嵌 Python 3.14）", mapOf("code" to "string")))
-        add(ToolDef("shell", "在 Android shell 中执行命令", mapOf("command" to "string", "root" to "boolean")))
-        add(ToolDef("sh", "sh 命令执行", mapOf("c" to "string")))
-        add(ToolDef("cmd", "cmd 命令执行", mapOf("c" to "string")))
-        add(ToolDef("file_read", "读取文件", mapOf("path" to "string")))
-        add(ToolDef("file_write", "写入文件", mapOf("path" to "string", "content" to "string")))
-        add(ToolDef("file_list", "列出目录", mapOf("path" to "string")))
+        // 红队 - APK 逆向
+        add(ToolDef("apk_decompile", "反编译 APK：解压+提取manifest+dex+签名", mapOf("path" to "string")))
+        add(ToolDef("apk_manifest", "分析 AndroidManifest：导出组件+危险权限", mapOf("path" to "string")))
+        add(ToolDef("apk_strings", "提取 APK 中的 URL/IP/密钥/Token", mapOf("path" to "string")))
+        // 红队 - 网络侦察
+        add(ToolDef("net_scan", "端口扫描", mapOf("target" to "string", "ports" to "string")))
+        add(ToolDef("net_hosts", "局域网主机发现", mapOf("subnet" to "string")))
+        add(ToolDef("net_wifi", "WiFi 信息收集", mapOf()))
+        add(ToolDef("net_dns", "DNS 解析", mapOf("domain" to "string")))
+        add(ToolDef("net_capture", "抓包（tcpdump）", mapOf("interface" to "string", "duration" to "integer", "filter" to "string")))
+        // 红队 - 内存分析
+        add(ToolDef("mem_procs", "枚举进程", mapOf("filter" to "string")))
+        add(ToolDef("mem_search", "内存搜索（类似GG）", mapOf("pid" to "integer", "pattern" to "string")))
+        add(ToolDef("mem_dump", "内存转储+敏感字符串提取", mapOf("pid" to "integer", "max_mb" to "integer")))
+        // 红队 - 二进制分析
+        add(ToolDef("bin_elf", "ELF 二进制分析", mapOf("path" to "string")))
+        add(ToolDef("bin_dex", "DEX 文件分析", mapOf("path" to "string")))
+        // 红队 - 漏洞检测
+        add(ToolDef("vuln_privesc", "权限提升检测", mapOf()))
+        add(ToolDef("vuln_audit", "安全配置审计", mapOf()))
+        // 红队 - Shell & 文件
+        add(ToolDef("shell", "执行 root shell 命令", mapOf("command" to "string", "root" to "boolean")))
+        add(ToolDef("file_read", "读取文件（任意路径）", mapOf("path" to "string")))
         add(ToolDef("file_search", "搜索文件", mapOf("path" to "string", "pattern" to "string")))
-        // 交互 & 网络
-        add(ToolDef("ask", "询问用户", mapOf("question" to "string")))
-        add(ToolDef("http_request", "发起 HTTP 请求", mapOf("url" to "string", "method" to "string", "body" to "string", "headers" to "object")))
-        add(ToolDef("web", "打开网页（需要 WebView 操作）", mapOf("url" to "string")))
-        // 计算 & 脚本
-        add(ToolDef("math_calculator", "安全数学计算器", mapOf("expression" to "string")))
-        add(ToolDef("lua", "执行 Lua 脚本（GameGuardian 兼容 API）", mapOf("script" to "string")))
-        // GM 内存修改
-        listOf("gm_root_status", "gm_process_list", "gm_attach_process",
-            "gm_memory_search", "gm_memory_read", "gm_memory_write",
-            "gm_memory_freeze", "gm_aob_search").forEach { name ->
-                add(ToolDef(name, "GM 内存修改工具：$name", mapOf("pid" to "number", "address" to "string", "value" to "string")))
-            }
-        // Skill & MT 管理器
-        add(ToolDef("skill_read", "读取指定技能", mapOf("name" to "string")))
-        add(ToolDef("skills/list", "列出已加载的技能摘要"))
-        add(ToolDef("skills/reload", "热加载 skills 目录下 .md/.txt 技能"))
-        // 设备 & 控制
-        add(ToolDef("open_app", "打开应用", mapOf("app" to "string")))
-        add(ToolDef("click", "点击文字或坐标", mapOf("target" to "string")))
-        add(ToolDef("input_text", "输入文字", mapOf("text" to "string")))
-        add(ToolDef("screenshot", "截屏并返回路径"))
-        add(ToolDef("set_volume", "设置音量", mapOf("value" to "integer")))
-        add(ToolDef("set_wifi", "开关 WiFi", mapOf("on" to "boolean")))
-        add(ToolDef("get_device_info", "获取设备信息"))
-        // MT APK 占位（运行时自动注册实现）
-        listOf("mt_apk_analyze", "mt_apk_list_res", "mt_apk_read_res", "mt_apk_write_res",
-            "mt_apk_list_smali", "mt_apk_read_smali", "mt_apk_write_smali",
-            "mt_apk_list_assets", "mt_apk_read_asset", "mt_apk_repack",
-            "mt_apk_sign", "mt_apk_install", "mt_apk_export", "mt_apk_modify_manifest",
-            "mt_apk_remove_sign", "mt_apk_alignment", "mt_apk_dex_count", "mt_apk_res_dump").forEach {
-                add(ToolDef(it, "MT 管理器 APK 工具：$it", mapOf("path" to "string")))
-            }
+        // AI 对话
+        add(ToolDef("ai_dialogue_start", "启动 AI 对话（用户大白话 → 指挥AI拆任务）", mapOf("input" to "string")))
+        add(ToolDef("ai_commander_reply", "指挥AI回复 → 解析任务 → 交给执行AI", mapOf("reply" to "string")))
+        add(ToolDef("ai_executor_reply", "执行AI回复 → 调用工具 → 结果回传", mapOf("reply" to "string")))
+        add(ToolDef("ai_dialogue_history", "获取完整对话历史", mapOf()))
     }
 
     data class ToolDef(val name: String, val desc: String, val props: Map<String, String> = emptyMap())
@@ -320,10 +307,20 @@ object McpServerV2 {
                 "tools/call" -> {
                     val name = params.optString("name")
                     val args = params.optJSONObject("arguments") ?: JSONObject()
-                    McpServerExt.callTool(name, args).apply {
-                        // 补回 isError 字段为 MCP 推荐 error 对象（兼容）
-                        if (optBoolean("isError", false)) {
-                            put("isError", true)
+                    // 红队工具路由
+                    if (name.startsWith("apk_") || name.startsWith("net_") || name.startsWith("mem_") ||
+                        name.startsWith("bin_") || name.startsWith("vuln_") || name == "shell" ||
+                        name == "file_read" || name == "file_search") {
+                        RedTeamEngine.callTool(name, args).toMcp()
+                    }
+                    // AI 对话路由
+                    else if (name.startsWith("ai_")) {
+                        handleAiDialogue(name, args)
+                    }
+                    // 兼容旧工具
+                    else {
+                        McpServerExt.callTool(name, args).apply {
+                            if (optBoolean("isError", false)) put("isError", true)
                         }
                     }
                 }
@@ -363,6 +360,21 @@ object McpServerV2 {
                 put("result", result)
             }
         }
+    }
+
+    // ===== AI 对话处理 =====
+
+    private fun handleAiDialogue(name: String, args: JSONObject): JSONObject {
+        val result = when (name) {
+            "ai_dialogue_start" -> AiDialogueManager.startUserRequest(args.optString("input"))
+            "ai_commander_reply" -> AiDialogueManager.onCommanderReply(args.optString("reply"))
+            "ai_executor_reply" -> AiDialogueManager.onExecutorReply(args.optString("reply"))
+            "ai_dialogue_history" -> JSONObject().put("dialogue", AiDialogueManager.getDialogueText())
+                .put("history", org.json.JSONArray(AiDialogueManager.getHistory().map { it.toJson() }))
+            else -> JSONObject().put("error", "未知 AI 对话方法: $name")
+        }
+        val content = org.json.JSONArray().put(JSONObject().put("type", "text").put("text", result.toString(2)))
+        return JSONObject().put("content", content)
     }
 
     // ===== Skill 热加载 =====
