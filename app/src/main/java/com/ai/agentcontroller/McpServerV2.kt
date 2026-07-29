@@ -25,7 +25,7 @@ import java.util.concurrent.Executors
  *  - 线程池管理 HTTP 连接；HandlerThread 专线写入 SSE
  *  - 正则预编译池；提示词模板缓存
  *  - 协议接口：initialize / tools/list / tools/call / skills/list / skills/reload / notifications/initialized
- *  - 40+ 内置工具：python/shell/sh/cmd/file_* / ask / http_request / web / math_calculator / lua / gm_* / skill_read / skills/* / mt_apk_*
+ *  - 40+ 内置工具：python/shell/sh/cmd/file_* / ask / http_request / web / math_calculator / lua / gm_* / skill_read / skills.list / skills.reload / mt_apk_*
  */
 object McpServerV2 {
 
