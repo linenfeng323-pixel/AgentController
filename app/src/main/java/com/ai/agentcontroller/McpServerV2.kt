@@ -383,7 +383,7 @@ object McpServerV2 {
                 // 同名覆盖
                 val list = DashboardManager.listSkills().toMutableList()
                 list.removeAll { it.name == name }
-                list.add(DashboardManager.Skill(name, desc ?: name, prompt))
+                list.add(DashboardManager.SkillTemplate(name, prompt, desc ?: name))
                 DashboardManager.saveSkills(list)
                 count++
             }
@@ -416,16 +416,16 @@ object McpServerV2 {
     // 层 1：内嵌静态 git（app/src/main/res/raw/git_arm64 二进制）
     // 层 2：系统 PATH git
     // 层 3：Python dulwich 纯 Python 实现兜底
-    fun git(args: List<String>, cwd: File? = null): Result<String> {
+    fun git(args: List<String>, cwd: File? = null): TerminalManager.ShellResult {
         val argStr = args.joinToString(" ")
         // 层 1：内嵌静态 git
         embeddedGitPath()?.let { g ->
             val r = TerminalManager.shell("$g $argStr", true, cwd?.absolutePath)
-            if (r.ok) return Result(true, r.out, r.err)
+            if (r.ok) return r
         }
         // 层 2：系统 git
         val r2 = TerminalManager.shell("git $argStr 2>&1 || /system/bin/git $argStr 2>&1 || /data/local/tmp/git $argStr 2>&1", true, cwd?.absolutePath)
-        if (r2.ok || r2.out.isNotBlank() && !r2.out.contains("not found")) return Result(r2.ok, r2.out, r2.err)
+        if (r2.ok || (r2.out.isNotBlank() && !r2.out.contains("not found"))) return r2
         // 层 3：dulwich 纯 Python 兜底
         val dulwichCmd = buildString {
             append("python3 -c \"")
@@ -434,8 +434,7 @@ object McpServerV2 {
             append("sys.exit(0 if d.dispatch(args) else 1)\" ")
             append(argStr)
         }
-        val r3 = TerminalManager.shell(dulwichCmd, false, cwd?.absolutePath)
-        return Result(r3.ok, r3.out, r3.err)
+        return TerminalManager.shell(dulwichCmd, false, cwd?.absolutePath)
     }
 
     private fun embeddedGitPath(): String? {

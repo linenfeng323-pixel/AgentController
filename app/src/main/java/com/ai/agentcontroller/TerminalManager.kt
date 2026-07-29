@@ -24,8 +24,9 @@ object TerminalManager {
         val ok get() = exit == 0
     }
 
-    fun shell(cmd: String, useRoot: Boolean = true): ShellResult {
-        val r = if (useRoot) RootShellExecutor.exec(cmd) else RootShellExecutor.exec(cmd)
+    fun shell(cmd: String, useRoot: Boolean = true, cwd: String? = null): ShellResult {
+        val finalCmd = if (cwd != null && cwd.isNotBlank()) "cd '$cwd' && $cmd" else cmd
+        val r = if (useRoot) RootShellExecutor.exec(finalCmd) else RootShellExecutor.exec(finalCmd)
         return ShellResult(r.exit, r.out, r.err)
     }
 

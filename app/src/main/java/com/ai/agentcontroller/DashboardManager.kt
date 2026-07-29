@@ -129,6 +129,8 @@ object DashboardManager {
 
     // ===== 技能模板 =====
 
+    typealias Skill = SkillTemplate
+
     data class SkillTemplate(val name: String, val prompt: String, val description: String) {
         fun toJson() = JSONObject().apply { put("name", name); put("prompt", prompt); put("description", description) }
         companion object { fun fromJson(o: JSONObject) = SkillTemplate(o.optString("name"), o.optString("prompt"), o.optString("description")) }
@@ -140,6 +142,14 @@ object DashboardManager {
     fun listSkills(): List<SkillTemplate> { loadSkills(); return skills.toList() }
     fun addSkill(s: SkillTemplate) { loadSkills(); skills.add(0, s); saveSkills() }
     fun deleteSkill(name: String) { loadSkills(); skills.removeAll { it.name == name }; saveSkills() }
+
+    /** 供 McpServerV2 热加载：整体替换技能列表并持久化 */
+    fun saveSkills(newList: List<SkillTemplate>) {
+        loadSkills()
+        skills.clear()
+        skills.addAll(newList)
+        saveSkills()
+    }
 
     /** 把技能注入到 AI 回复 prompt 里 */
     fun injectSkill(skillName: String, userGoal: String): String? {
