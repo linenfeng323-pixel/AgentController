@@ -2,222 +2,125 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>RedTeam AI · 红队智能体</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>RedTeam AI</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,Segoe UI,Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:#0a0e1a;color:#e6e8ef}
-header{padding:16px 22px;background:linear-gradient(90deg,#1a0a2e,#0a0e1a);border-bottom:1px solid #2a1a4a}
-h1{margin:0;font-size:20px;color:#ff4466}h1 small{color:#8866aa;margin-left:8px;font-weight:400}
-.grid{display:grid;grid-template-columns:340px 1fr;min-height:calc(100vh - 64px)}
-.left{border-right:1px solid #1a1a3a;padding:14px;overflow:auto;max-height:calc(100vh - 64px)}
-.right{padding:14px;display:flex;flex-direction:column;gap:12px}
-.card{background:#0f1428;border:1px solid #1e2448;border-radius:12px;padding:14px;margin-bottom:12px}
-h2{margin:0 0 8px 0;font-size:14px;color:#ff6688}
-.tag{display:inline-block;padding:2px 8px;font-size:11px;border-radius:8px;background:#2a1040;color:#ff99aa;margin:2px 4px 2px 0}
-.tool{padding:8px 10px;border-radius:8px;background:#0a0f20;margin-bottom:5px;cursor:pointer;border:1px solid transparent;transition:.15s}
-.tool:hover{border-color:#6a2a4a;background:#150a20}
-.tool b{color:#ff4466;font-size:12px}.tool span{color:#7a8aaa;font-size:11px;display:block;margin-top:2px}
-.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;margin-right:5px;background:#1a1a3a;color:#aabbdd}
-.pill.ok{background:#0a3a2a;color:#66ff99}.pill.no{background:#3a0a1a;color:#ff6688}
-input[type=text],textarea,select{width:100%;padding:10px 12px;border-radius:8px;background:#0a0f20;color:#eef;border:1px solid #2a2a5a;outline:none;font-size:13px}
-textarea{min-height:100px;font-family:ui-monospace,Menlo,Consolas,monospace}
-button{background:linear-gradient(135deg,#cc2255,#ff4466);border:0;color:#fff;padding:9px 14px;border-radius:8px;cursor:pointer;font-weight:600;margin-right:6px;font-size:13px}
-button.ghost{background:#1a1a3a;color:#aabbdd}button.small{padding:6px 10px;font-size:12px}
-.row{display:flex;gap:8px;margin-bottom:8px}
-.chat{flex:1;min-height:300px;overflow:auto;padding:14px;border-radius:10px;background:#060810;border:1px solid #1a1a3a;font-size:13px}
-.msg{padding:8px 12px;margin-bottom:8px;border-radius:8px;white-space:pre-wrap;word-break:break-word}
-.msg.user{background:#0a1a3a;border-left:3px solid #4488ff}
-.msg.commander{background:#1a0a2a;border-left:3px solid #aa44ff}
-.msg.executor{background:#0a2a1a;border-left:3px solid #44ff88}
-.msg.system{background:#2a2a0a;border-left:3px solid #ffaa44}
-.msg b{font-size:11px;color:#888;display:block;margin-bottom:4px}
-.events{max-height:200px;overflow:auto;padding:10px;border-radius:8px;background:#060810;border:1px solid #1a1a3a;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,Segoe UI,Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:#0a0e1a;color:#e6e8ef;height:100vh;display:flex;flex-direction:column}
+header{padding:12px 16px;background:linear-gradient(90deg,#1a0a2e,#0a0e1a);border-bottom:1px solid #2a1a4a;flex-shrink:0}
+h1{font-size:17px;color:#ff4466}h1 small{color:#8866aa;font-weight:400;font-size:12px;margin-left:6px}
+#chat{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;padding:10px 14px;border-radius:14px;white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:1.5}
+.msg.user{align-self:flex-end;background:#1a3a6a;color:#ddeeff;border-bottom-right-radius:4px}
+.msg.ai{align-self:flex-start;background:#1a1a2e;color:#eef;border-bottom-left-radius:4px;border-left:2px solid #ff4466}
+.msg.ai b{color:#ff6688;font-size:12px;display:block;margin-bottom:4px}
+.msg.loading{align-self:flex-start;background:#1a1a2e;color:#8866aa;font-style:italic}
+.typing{display:inline-block;width:6px;height:6px;background:#8866aa;border-radius:50%;margin:0 2px;animation:bounce .6s infinite}
+.typing:nth-child(2){animation-delay:.15s}.typing:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+#bar{flex-shrink:0;padding:10px 12px;background:#0f1428;border-top:1px solid #1e2448;display:flex;gap:8px;align-items:center}
+#input{flex:1;padding:10px 14px;border-radius:20px;background:#0a0f20;color:#eef;border:1px solid #2a2a5a;outline:none;font-size:14px;resize:none;max-height:120px;min-height:42px;line-height:1.4}
+#input:focus{border-color:#ff4466}
+#send{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#cc2255,#ff4466);border:0;color:#fff;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+#send:disabled{opacity:.4}
+.status{font-size:11px;color:#666;padding:0 16px 6px;flex-shrink:0}
+.status .ok{color:#66ff99}.status .no{color:#ff6688}
 </style>
 </head>
 <body>
 <header>
-<h1>RedTeam AI <small>红队智能体 · AI与AI对话 · 逆向/渗透/漏洞分析</small></h1>
+<h1>RedTeam AI <small>输入大白话，自动执行红队操作</small></h1>
 </header>
-<div class="grid">
-  <aside class="left">
-    <div class="card">
-      <h2>服务状态</h2>
-      <div>
-        <span id="srv" class="pill no">未连接</span>
-        <span class="pill">PORT <b>8080</b></span>
-        <span class="pill">JSON-RPC 2.0</span>
-      </div>
-      <div style="margin-top:8px">
-        <button class="ghost small" onclick="connectMcp()">连接</button>
-        <button class="ghost small" onclick="connectSse()">SSE</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>AI 对话（大白话指挥）</h2>
-      <textarea id="userInput" placeholder="用大白话输入你的需求，比如：&#10;帮我逆向分析 /sdcard/app.apk 看看有没有漏洞&#10;扫描局域网看看有哪些主机和开放端口&#10;检查当前设备的 root 提权可能性"></textarea>
-      <div style="margin-top:8px">
-        <button onclick="startDialogue()">发送给指挥AI</button>
-        <button class="ghost" onclick="clearDialogue()">清空</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>直接调用工具</h2>
-      <select id="tool" onchange="fillExample()"></select>
-      <textarea id="args" placeholder='{"path":"/sdcard/app.apk"}'></textarea>
-      <div style="margin-top:6px">
-        <button onclick="callTool()">执行</button>
-        <button class="ghost" onclick="listTools()">列出全部</button>
-      </div>
-      <div id="out" style="margin-top:8px;padding:10px;border-radius:8px;background:#060810;border:1px solid #1a1a3a;font-size:12px;max-height:200px;overflow:auto;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace"></div>
-    </div>
-
-    <div class="card">
-      <h2>红队工具 (18+)</h2>
-      <div id="tools"></div>
-    </div>
-  </aside>
-
-  <main class="right">
-    <div class="card" style="flex:1;display:flex;flex-direction:column">
-      <h2>AI 对话记录 <span class="pill" id="stepPill" style="float:right">STEP 0</span></h2>
-      <div id="chat" class="chat"><div class="msg system"><b>系统</b>在左侧输入你的需求，指挥AI会拆解任务并指挥执行AI调用工具完成操作。</div></div>
-    </div>
-    <div class="card">
-      <h2>SSE 事件流</h2>
-      <div id="events" class="events">点击「SSE」开始监听事件...</div>
-    </div>
-  </main>
+<div id="chat"></div>
+<div class="status" id="status">连接中...</div>
+<div id="bar">
+<textarea id="input" rows="1" placeholder="输入你的需求...&#10;例如：逆向分析 /sdcard/app.apk&#10;例如：扫描 192.168.1.1 端口&#10;例如：检查设备安全漏洞"></textarea>
+<button id="send" onclick="send()">➤</button>
 </div>
-
 <script>
-const TOOLS = [
-  {n:"apk_decompile",d:"反编译 APK",args:`{"path":"/sdcard/app.apk"}`},
-  {n:"apk_manifest",d:"Manifest 安全分析",args:`{"path":"/sdcard/app.apk"}`},
-  {n:"apk_strings",d:"提取 URL/IP/密钥",args:`{"path":"/sdcard/app.apk"}`},
-  {n:"net_scan",d:"端口扫描",args:`{"target":"192.168.1.1","ports":"1-1000"}`},
-  {n:"net_hosts",d:"局域网主机发现",args:`{"subnet":"192.168.1"}`},
-  {n:"net_wifi",d:"WiFi 信息",args:`{}`},
-  {n:"net_dns",d:"DNS 解析",args:`{"domain":"example.com"}`},
-  {n:"net_capture",d:"抓包",args:`{"interface":"wlan0","duration":30,"filter":""}`},
-  {n:"mem_procs",d:"枚举进程",args:`{"filter":""}`},
-  {n:"mem_search",d:"内存搜索",args:`{"pid":1234,"pattern":"password"}`},
-  {n:"mem_dump",d:"内存转储",args:`{"pid":1234,"max_mb":50}`},
-  {n:"bin_elf",d:"ELF 分析",args:`{"path":"/system/bin/ls"}`},
-  {n:"bin_dex",d:"DEX 分析",args:`{"path":"/sdcard/classes.dex"}`},
-  {n:"vuln_privesc",d:"权限提升检测",args:`{}`},
-  {n:"vuln_audit",d:"安全审计",args:`{}`},
-  {n:"shell",d:"root shell",args:`{"command":"id && whoami","root":true}`},
-  {n:"file_read",d:"读文件",args:`{"path":"/sdcard/test.txt"}`},
-  {n:"file_search",d:"搜文件",args:`{"path":"/sdcard","pattern":"*.apk"}`},
-  {n:"ai_dialogue_start",d:"启动AI对话",args:`{"input":"帮我检查设备安全"}`},
-  {n:"ai_commander_reply",d:"指挥AI回复",args:`{"reply":"{\\"task\\":\\"检查设备\\",\\"tool\\":\\"vuln_audit\\",\\"args\\":{}}"}`},
-  {n:"ai_executor_reply",d:"执行AI回复",args:`{"reply":"{\\"action\\":\\"call_tool\\",\\"tool\\":\\"vuln_audit\\",\\"args\\":{}}"}`},
-  {n:"ai_dialogue_history",d:"对话历史",args:`{}`},
-];
-const toolsDiv=document.getElementById("tools");
-const toolSel=document.getElementById("tool");
-TOOLS.forEach(t=>{
-  const d=document.createElement("div");d.className="tool";
-  d.innerHTML=`<b>${t.n}</b><span>${t.d}</span>`;
-  d.onclick=()=>{toolSel.value=t.n;document.getElementById("args").value=t.args||'{}';};
-  toolsDiv.appendChild(d);
-  const o=document.createElement("option");o.value=t.n;o.textContent=t.n;toolSel.appendChild(o);
-});
-function fillExample(){const t=TOOLS.find(x=>x.n===document.getElementById('tool').value);if(t)document.getElementById('args').value=t.args||'{}';}
-
 const BASE=location.origin;
-let rpcId=0;
+let rpcId=0,connected=false;
+const chat=document.getElementById('chat');
+const input=document.getElementById('input');
+const sendBtn=document.getElementById('send');
+const statusEl=document.getElementById('status');
+
+// 自动调整输入框高度
+input.addEventListener('input',()=>{
+  input.style.height='auto';
+  input.style.height=Math.min(input.scrollHeight,120)+'px';
+});
+// 回车发送（Shift+Enter换行）
+input.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
+});
+
 async function rpc(method,params){
   const id=++rpcId;
-  const body=JSON.stringify({jsonrpc:"2.0",method,params,id});
-  const r=await fetch(BASE+"/mcp",{method:"POST",headers:{"Content-Type":"application/json"},body});
+  const r=await fetch(BASE+'/mcp',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({jsonrpc:'2.0',method,params,id})});
   return await r.json();
 }
-function outln(txt,cls){const d=document.createElement('div');d.className=cls||'';d.textContent=typeof txt==='string'?txt:JSON.stringify(txt,null,2);const out=document.getElementById('out');out.appendChild(d);out.scrollTop=out.scrollHeight;}
 
-async function connectMcp(){
-  try{
-    const h=await fetch(BASE+"/health").then(r=>r.json());
-    document.getElementById('srv').className='pill ok';document.getElementById('srv').textContent='已连接 '+h.version;
-    await rpc("initialize",{protocolVersion:"2024-11-05",capabilities:{},clientInfo:{name:"redteam",version:"1.0"}});
-    outln("连接成功","ok");
-  }catch(e){document.getElementById('srv').className='pill no';document.getElementById('srv').textContent='连接失败';outln('× '+e.message,"err");}
+function addMsg(cls,text,sender){
+  const d=document.createElement('div');
+  d.className='msg '+cls;
+  if(sender){d.innerHTML='<b>'+sender+'</b>'+escapeHtml(text);}
+  else{d.textContent=text;}
+  chat.appendChild(d);
+  chat.scrollTop=chat.scrollHeight;
+  return d;
 }
-async function listTools(){const r=await rpc("tools/list",{});outln(r.result||r);}
-async function callTool(){
-  const name=document.getElementById('tool').value;
-  let args={};try{args=JSON.parse(document.getElementById('args').value||'{}');}catch(e){outln('参数JSON错误: '+e.message,"err");return;}
-  const r=await rpc("tools/call",{name,arguments:args});
-  if(r.error)outln('× '+JSON.stringify(r.error),"err");
-  else outln(r.result?.content?.[0]?.text||JSON.stringify(r.result,null,2),"ok");
-  // 如果是AI对话工具，更新聊天窗口
-  if(name.startsWith("ai_"))updateChatFromResult(r.result);
-}
+function escapeHtml(s){return s.replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-// ===== AI 对话 =====
-async function startDialogue(){
-  const input=document.getElementById('userInput').value.trim();
-  if(!input){outln("请输入需求","err");return;}
-  addChat("user","用户",input);
-  addChat("commander","指挥AI","收到需求，正在分析...");
-  const r=await rpc("tools/call",{name:"ai_dialogue_start",arguments:{input}});
-  updateChatFromResult(r.result);
+function showLoading(){
+  const d=document.createElement('div');
+  d.className='msg loading';
+  d.id='loadingMsg';
+  d.innerHTML='执行中<span class="typing"></span><span class="typing"></span><span class="typing"></span>';
+  chat.appendChild(d);
+  chat.scrollTop=chat.scrollHeight;
 }
-function updateChatFromResult(result){
-  if(!result||!result.content)return;
-  const text=result.content[0]?.text||"";
+function hideLoading(){const e=document.getElementById('loadingMsg');if(e)e.remove();}
+
+async function send(){
+  const text=input.value.trim();
+  if(!text||!connected)return;
+  addMsg('user',text);
+  input.value='';
+  input.style.height='auto';
+  sendBtn.disabled=true;
+  showLoading();
   try{
-    const o=JSON.parse(text);
-    if(o.status==="executor_turn"){
-      addChat("executor","执行AI","收到 "+(o.tasks?.length||0)+" 个任务，正在执行...");
-      document.getElementById('stepPill').textContent="STEP "+o.step;
-    }else if(o.status==="commander_turn"){
-      if(o.toolResults)o.toolResults.forEach(tr=>{
-        addChat("executor","执行AI","工具 "+tr.tool+" 执行"+(tr.ok?"成功":"失败")+"\n"+(tr.result||"").slice(0,500));
-      });
-      addChat("commander","指挥AI","审查结果中...");
-      document.getElementById('stepPill').textContent="STEP "+o.step;
-    }else if(o.status==="done"){
-      addChat("system","系统","✅ 任务完成\n"+(o.summary||""));
-    }else if(o.dialogue){
-      addChat("system","系统",o.dialogue.slice(0,2000));
+    const r=await rpc('tools/call',{name:'chat',arguments:{input:text}});
+    hideLoading();
+    if(r.error){
+      addMsg('ai','错误: '+(r.error.message||JSON.stringify(r.error)),'❌');
+    }else{
+      const resultText=r.result?.content?.[0]?.text||JSON.stringify(r.result);
+      addMsg('ai',resultText,'RedTeam AI');
     }
   }catch(e){
-    // 非JSON，直接显示
-    if(text.length>0&&text.length<2000)addChat("executor","结果",text);
+    hideLoading();
+    addMsg('ai','连接失败: '+e.message,'❌');
   }
-}
-function addChat(cls,sender,text){
-  const chat=document.getElementById('chat');
-  const d=document.createElement('div');d.className="msg "+cls;
-  d.innerHTML="<b>"+sender+"</b>"+text.replace(/</g,'&lt;');
-  chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
-}
-function clearDialogue(){
-  document.getElementById('chat').innerHTML='<div class="msg system"><b>系统</b>对话已清空。</div>';
-  rpc("tools/call",{name:"ai_dialogue_start",arguments:{input:"__clear__"}}).catch(()=>{});
+  sendBtn.disabled=false;
+  input.focus();
 }
 
-// ===== SSE =====
-let sse=null;
-function connectSse(){
-  if(sse){sse.close();sse=null;return;}
-  sse=new EventSource(BASE+'/sse');
-  sse.onopen=()=>addEvt("SSE 已连接");
-  ['started','chunk','status','done','plan','error','context_compressed'].forEach(ev=>{
-    sse.addEventListener(ev,e=>addEvt(ev+": "+e.data.slice(0,200)));
-  });
-}
-function addEvt(text){
-  const box=document.getElementById('events');
-  const d=document.createElement('div');d.textContent=text;
-  box.appendChild(d);box.scrollTop=box.scrollHeight;
-}
-
-// 自动连接
-(async()=>{try{await connectMcp();}catch(_){}})();
+// 连接
+(async()=>{
+  try{
+    const h=await fetch(BASE+'/health').then(r=>r.json());
+    await rpc('initialize',{protocolVersion:'2024-11-05',capabilities:{},clientInfo:{name:'redteam',version:'1.0'}});
+    connected=true;
+    statusEl.innerHTML='<span class="ok">● 已连接 · v'+h.version+'</span>';
+    addMsg('ai','已连接。直接输入你的需求，我会自动执行。\n\n试试：\n· 逆向分析 /sdcard/app.apk\n· 扫描 192.168.1.1 端口\n· 检查设备安全\n· 进程列表\n· 局域网有哪些设备','RedTeam AI');
+  }catch(e){
+    statusEl.innerHTML='<span class="no">● 未连接，请先启动 MCP 服务</span>';
+    addMsg('ai','连接失败，请先在应用中启动 MCP 服务。','❌');
+  }
+})();
 </script>
 </body>
 </html>

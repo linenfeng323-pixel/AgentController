@@ -80,10 +80,7 @@ object McpServerV2 {
         add(ToolDef("file_read", "读取文件（任意路径）", mapOf("path" to "string")))
         add(ToolDef("file_search", "搜索文件", mapOf("path" to "string", "pattern" to "string")))
         // AI 对话
-        add(ToolDef("ai_dialogue_start", "启动 AI 对话（用户大白话 → 指挥AI拆任务）", mapOf("input" to "string")))
-        add(ToolDef("ai_commander_reply", "指挥AI回复 → 解析任务 → 交给执行AI", mapOf("reply" to "string")))
-        add(ToolDef("ai_executor_reply", "执行AI回复 → 调用工具 → 结果回传", mapOf("reply" to "string")))
-        add(ToolDef("ai_dialogue_history", "获取完整对话历史", mapOf()))
+        add(ToolDef("chat", "大白话输入，自动识别意图并执行红队操作", mapOf("input" to "string")))
     }
 
     data class ToolDef(val name: String, val desc: String, val props: Map<String, String> = emptyMap())
@@ -314,8 +311,9 @@ object McpServerV2 {
                         RedTeamEngine.callTool(name, args).toMcp()
                     }
                     // AI 对话路由
-                    else if (name.startsWith("ai_")) {
-                        handleAiDialogue(name, args)
+                    else if (name == "chat") {
+                        val result = RedTeamEngine.smartRoute(args.optString("input"))
+                        result.toMcp()
                     }
                     // 兼容旧工具
                     else {

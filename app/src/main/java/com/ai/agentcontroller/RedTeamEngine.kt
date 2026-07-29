@@ -457,4 +457,200 @@ object RedTeamEngine {
             else -> ToolResult(false, "未知工具: $name")
         }
     }
+
+    /**
+     * 大白话智能路由：用户输入自然语言 → 自动识别意图 → 调用对应红队工具。
+     *
+     * 这是核心入口，用户只需要说话，不需要知道工具名。
+     * 支持多步组合：如果一句话涉及多个操作，依次执行并汇总。
+     */
+    fun smartRoute(input: String): ToolResult {
+        val text = input.lowercase().trim()
+        val results = mutableListOf<String>()
+
+        // ===== APK 逆向 =====
+        // "逆向/反编译/分析 xxx.apk"
+        val apkPath = Regex("""(/[\S]+\.apk)""").find(input)?.value
+            ?: Regex("""([\w/]+\.(apk|dex|so))""", RegexOption.IGNORE_CASE).find(input)?.value
+
+        if (apkPath != null) {
+            if (text.contains("逆向") || text.contains("反编译") || text.contains("decompile")) {
+                results.add("→ 反编译 $apkPath")
+                results.add(decompileApk(apkPath).text)
+            }
+            if (text.contains("manifest") || text.contains("权限") || text.contains("组件") || text.contains("漏洞")) {
+                results.add("→ Manifest 分析 $apkPath")
+                results.add(analyzeManifest(apkPath).text)
+            }
+            if (text.contains("字符串") || text.contains("url") || text.contains("密钥") || text.contains("token") || text.contains("secret")) {
+                results.add("→ 提取字符串 $apkPath")
+                results.add(extractStrings(apkPath).text)
+            }
+            if (text.contains("dex") || text.contains("分析")) {
+                if (apkPath.endsWith(".dex")) {
+                    results.add("→ DEX 分析 $apkPath")
+                    results.add(analyzeDex(apkPath).text)
+                }
+            }
+            if (apkPath.endsWith(".so") || text.contains("elf") || text.contains("二进制") || text.contains("so库")) {
+                results.add("→ ELF 分析 $apkPath")
+                results.add(analyzeElf(apkPath).text)
+            }
+            // 如果只是说"分析这个apk"没有指定具体操作，全做
+            if (results.isEmpty() && (text.contains("分析") || text.contains("看看") || text.contains("检查"))) {
+                results.add("→ 全面分析 $apkPath")
+                results.add(decompileApk(apkPath).text)
+                results.add(analyzeManifest(apkPath).text)
+                results.add(extractStrings(apkPath).text)
+            }
+        }
+
+        // ===== 网络侦察 =====
+        // 端口扫描 "扫描 192.168.1.1" / "scan 192.168.1.1 port"
+        val scanTarget = Regex("""(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""").find(input)?.value
+        if (scanTarget != null && (text.contains("扫描") || text.contains("端口") || text.contains("scan") || text.contains("port"))) {
+            val ports = Regex("""(\d+[-]\d+)""").find(input)?.value ?: "1-1000"
+            results.add("→ 端口扫描 $scanTarget ($ports)")
+            results.add(portScan(scanTarget, ports).text)
+        }
+
+        // 主机发现 "扫描局域网" / "发现主机" / "有哪些设备"
+        if (text.contains("局域网") || text.contains("主机") || text.contains("设备") || text.contains("lan") || text.contains("host")) {
+            val subnet = Regex("""(\d{1,3}\.\d{1,3}\.\d{1,3})\.\d""").find(input)?.groupValues?.get(1) ?: "192.168.1"
+            results.add("→ 局域网主机发现 $subnet.0/24")
+            results.add(hostDiscovery(subnet).text)
+        }
+
+        // WiFi 信息
+        if (text.contains("wifi") || text.contains("无线") || text.contains("网络信息")) {
+            results.add("→ WiFi 信息收集")
+            results.add(wifiInfo().text)
+        }
+
+        // DNS 解析
+        val domain = Regex("""([a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,})""").find(input)?.value
+        if (domain != null && (text.contains("dns") || text.contains("解析") || text.contains("resolve") || text.contains("域名"))) {
+            results.add("→ DNS 解析 $domain")
+            results.add(dnsResolve(domain).text)
+        }
+
+        // 抓包
+        if (text.contains("抓包") || text.contains("capture") || text.contains("wireshark") || text.contains("tcpdump")) {
+            val dur = Regex("""(\d+)\s*秒""").find(input)?.groupValues?.get(1)?.toIntOrNull() ?: 30
+            results.add("→ 抓包 ${dur}秒")
+            results.add(startCapture("wlan0", dur, "").text)
+        }
+
+        // ===== 内存分析 =====
+        // 进程列表 "进程" / "运行了什么" / "内存"
+        if (text.contains("进程") || text.contains("运行") || text.contains("proc")) {
+            val filter = if (text.contains("微信")) "tencent.mm"
+                else if (text.contains("qq")) "tencent.mobileqq"
+                else if (text.contains("chrome") || text.contains("浏览器")) "chrome"
+                else ""
+            results.add("→ 进程枚举" + if (filter.isNotEmpty()) " ($filter)" else "")
+            results.add(listProcesses(filter).text)
+        }
+
+        // 内存搜索 "搜内存" / "搜索 xxx 进程的内存"
+        if (text.contains("搜内存") || text.contains("内存搜索") || text.contains("memory search")) {
+            val pidMatch = Regex("""pid[=:\s]*(\d+)""", RegexOption.IGNORE_CASE).find(input)?.groupValues?.get(1)?.toIntOrNull()
+            val pattern = Regex("""["""]([^""]+)["""]""").find(input)?.groupValues?.get(1)
+                ?: Regex("""搜[索]?([\w_]+)""").find(input)?.groupValues?.get(1) ?: "password"
+            if (pidMatch != null) {
+                results.add("→ 内存搜索 PID=$pidMatch pattern='$pattern'")
+                results.add(searchMemory(pidMatch, pattern).text)
+            } else {
+                results.add("→ 请先指定 PID，可用「进程」命令查看")
+            }
+        }
+
+        // 内存转储
+        if (text.contains("转储") || text.contains("dump") || text.contains("内存镜像")) {
+            val pidMatch = Regex("""pid[=:\s]*(\d+)""", RegexOption.IGNORE_CASE).find(input)?.groupValues?.get(1)?.toIntOrNull()
+            if (pidMatch != null) {
+                results.add("→ 内存转储 PID=$pidMatch")
+                results.add(dumpProcessMemory(pidMatch, 50).text)
+            } else {
+                results.add("→ 请指定 PID")
+            }
+        }
+
+        // ===== 漏洞检测 =====
+        if (text.contains("提权") || text.contains("权限提升") || text.contains("privesc") || text.contains("root检测") || text.contains("root检测")) {
+            results.add("→ 权限提升检测")
+            results.add(checkPrivEsc().text)
+        }
+
+        if (text.contains("审计") || text.contains("安全检查") || text.contains("安全配置") || text.contains("audit")) {
+            results.add("→ 安全配置审计")
+            results.add(securityAudit().text)
+        }
+
+        // 综合安全检测 "检查安全" / "漏洞扫描" / "安全评估"
+        if (results.isEmpty() && (text.contains("安全") || text.contains("漏洞") || text.contains("检查") || text.contains("评估") || text.contains("检测"))) {
+            results.add("→ 综合安全检测")
+            results.add(checkPrivEsc().text)
+            results.add(securityAudit().text)
+        }
+
+        // ===== Shell =====
+        // "执行 xxx" / "运行 xxx" / shell 命令
+        val shellCmd = Regex("""(?:执行|运行|run|exec|shell)[\s:]+(.+)""", RegexOption.IGNORE_CASE).find(input)?.groupValues?.get(1)?.trim()
+        if (shellCmd != null && results.isEmpty()) {
+            results.add("→ Shell 执行: $shellCmd")
+            results.add(execShell(shellCmd, true).text)
+        }
+
+        // 读文件 "读 /xxx/xxx" / "cat /xxx"
+        val filePath = Regex("""(?:读|查看|cat|read)[\s:]+(/[\S]+)""", RegexOption.IGNORE_CASE).find(input)?.groupValues?.get(1)
+        if (filePath != null && results.isEmpty()) {
+            results.add("→ 读取文件 $filePath")
+            results.add(readFile(filePath).text)
+        }
+
+        // 搜文件 "搜文件 xxx" / "find xxx"
+        val searchPattern = Regex("""(?:搜文件|find|搜索文件)[\s:]+([\w*.]+)""", RegexOption.IGNORE_CASE).find(input)?.groupValues?.get(1)
+        if (searchPattern != null && results.isEmpty()) {
+            val searchPath = Regex("""(/[\w/]+)""").find(input)?.value ?: "/sdcard"
+            results.add("→ 搜索文件 $searchPath/$searchPattern")
+            results.add(searchFiles(searchPath, searchPattern).text)
+        }
+
+        // ===== 兜底 =====
+        if (results.isEmpty()) {
+            return ToolResult(true, buildString {
+                appendLine("我没有识别出你要做什么。试试这些说法：")
+                appendLine()
+                appendLine("📦 APK 逆向：")
+                appendLine("  · 逆向分析 /sdcard/app.apk")
+                appendLine("  · 看看这个APK有没有漏洞 /sdcard/test.apk")
+                appendLine("  · 提取 /sdcard/app.apk 里的密钥和URL")
+                appendLine()
+                appendLine("🌐 网络侦察：")
+                appendLine("  · 扫描 192.168.1.1 的端口")
+                appendLine("  · 局域网有哪些设备")
+                appendLine("  · WiFi 信息")
+                appendLine("  · 解析 example.com 的DNS")
+                appendLine("  · 抓包 30秒")
+                appendLine()
+                appendLine("💾 内存分析：")
+                appendLine("  · 进程列表")
+                appendLine("  · 搜内存 pid=1234 \"password\"")
+                appendLine("  · 转储 pid=1234 的内存")
+                appendLine()
+                appendLine("🔍 漏洞检测：")
+                appendLine("  · 检查提权可能性")
+                appendLine("  · 安全审计")
+                appendLine("  · 检查设备安全")
+                appendLine()
+                appendLine("⚡ Shell：")
+                appendLine("  · 执行 id && whoami")
+                appendLine("  · 读 /etc/hosts")
+                appendLine("  · 搜文件 *.apk")
+            })
+        }
+
+        return ToolResult(true, results.joinToString("\n\n"))
+    }
 }
