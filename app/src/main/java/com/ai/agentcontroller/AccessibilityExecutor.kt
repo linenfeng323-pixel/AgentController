@@ -1,7 +1,7 @@
 package com.ai.agentcontroller
 
 import android.accessibilityservice.AccessibilityService
-import android.accessibilityservice.AccessibilityService.GestureDescription
+import android.accessibilityservice.GestureDescription
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -85,8 +85,8 @@ object AccessibilityExecutor {
         }
         val s = svc ?: return false
         val path = Path().apply { moveTo(x, y) }
-        val stroke = AccessibilityService.GestureDescription.StrokeDescription(path, 0, 50)
-        val gesture = AccessibilityService.GestureDescription.Builder().addStroke(stroke).build()
+        val stroke = GestureDescription.StrokeDescription(path, 0, 50)
+        val gesture = GestureDescription.Builder().addStroke(stroke).build()
         return s.dispatchGesture(gesture, null, null)
     }
 
@@ -97,8 +97,8 @@ object AccessibilityExecutor {
         }
         val s = svc ?: return false
         val path = Path().apply { moveTo(x, y) }
-        val stroke = AccessibilityService.GestureDescription.StrokeDescription(path, 0, durationMs)
-        val gesture = AccessibilityService.GestureDescription.Builder().addStroke(stroke).build()
+        val stroke = GestureDescription.StrokeDescription(path, 0, durationMs)
+        val gesture = GestureDescription.Builder().addStroke(stroke).build()
         return s.dispatchGesture(gesture, null, null)
     }
 
@@ -109,8 +109,8 @@ object AccessibilityExecutor {
         }
         val s = svc ?: return false
         val path = Path().apply { moveTo(x1, y1); lineTo(x2, y2) }
-        val stroke = AccessibilityService.GestureDescription.StrokeDescription(path, 0, durationMs)
-        val gesture = AccessibilityService.GestureDescription.Builder().addStroke(stroke).build()
+        val stroke = GestureDescription.StrokeDescription(path, 0, durationMs)
+        val gesture = GestureDescription.Builder().addStroke(stroke).build()
         return s.dispatchGesture(gesture, null, null)
     }
 

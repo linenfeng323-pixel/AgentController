@@ -13,7 +13,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.gridlayout.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.ai.agentcontroller.AiSiteResolver.Site
@@ -107,8 +106,8 @@ class MainActivity : AppCompatActivity() {
             AccessibilityServiceHelper.openAccessibilitySettings()
         }
 
-        // 热门 AI：GridLayoutManager 3 列
-        hotSitesGrid.layoutManager = GridLayoutManager(this, 3)
+        // 热门 AI：用 LinearLayoutManager 竖向列表（避免引入 gridlayout 依赖）
+        hotSitesGrid.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         hotSitesGrid.adapter = SiteAdapter(AiSiteResolver.hotSites) { site -> openSite(site) }
 
         recentList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
