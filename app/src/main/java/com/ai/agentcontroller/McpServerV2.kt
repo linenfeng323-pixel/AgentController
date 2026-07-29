@@ -406,8 +406,12 @@ object McpServerV2 {
         val body = fm.groupValues[2].ifBlank { text }
         var desc: String? = null
         head.lineSequence().forEach { l ->
-            val (k, v) = l.split(':', limit = 2).let { if (it.size == 2) it[0].trim() to it[1].trim() else return@forEach "" to "" }
-            if (k.equals("description", true) || k.equals("desc", true)) desc = v
+            val parts = l.split(':', limit = 2)
+            if (parts.size == 2) {
+                val k = parts[0].trim()
+                val v = parts[1].trim()
+                if (k.equals("description", true) || k.equals("desc", true)) desc = v
+            }
         }
         return desc to body
     }
